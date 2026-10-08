@@ -1,188 +1,195 @@
-"""Sensor and measurement objects (Jacobian H provided; h(x) from student camera_fusion)."""
+"""Sensor adapters for vehicle-frame states and calibrated pinhole observations.
+
+Waymo camera axes are forward, left, up. The horizontal pixel interval [0, width]
+therefore maps to angles atan((c_i - width) / f_i) through atan(c_i / f_i).
+The camera Jacobian follows the chain rule: projection derivative times rotation.
+"""
 
 from __future__ import annotations
 
-from typing import Any, Optional, Sequence
+from typing import Any
+from typing import Sequence
 
 import numpy as np
 
 from fusion_lab import tracking_params as params
 
 Matrix = np.matrix | np.ndarray
+MIN_CAMERA_DEPTH = 1e-6
+
+
+def _noise_covariance(name: str) -> np.matrix:
+    """Construct independent observation noise in the sensor's native units."""
+    scales = {
+        "lidar": (params.sigma_lidar_x, params.sigma_lidar_y, params.sigma_lidar_z),
+        "camera": (params.sigma_cam_i, params.sigma_cam_j),
+    }
+    return np.asmatrix(np.diag(np.square(scales[name])))
 
 
 class Sensor:
-    """LiDAR or front camera sensor with extrinsics/intrinsics."""
+    """Adapt lidar positions or calibrated camera pixels to a six-state EKF.
+
+    Args:
+        name: Either ``lidar`` or ``camera``.
+        calib: Waymo camera calibration, including image width; unused for lidar.
+        camera_fusion: Student module implementing visibility and camera projection.
+
+    Raises:
+        ValueError: If the sensor type or camera calibration is invalid.
+    """
+
+    depth_epsilon = MIN_CAMERA_DEPTH
 
     def __init__(self, name: str, calib: Any, camera_fusion: Any) -> None:
+        dimensions = {"lidar": 3, "camera": 2}
+        if name not in dimensions:
+            raise ValueError(f"Unsupported tracking sensor: {name!r}")
         self.name = name
+        self.dim_meas = dimensions[name]
         self._cam = camera_fusion
-        if name == "lidar":
-            self.dim_meas = 3
-            self.sens_to_veh = np.asmatrix(np.identity(4))
-            self.fov = [-np.pi / 2, np.pi / 2]
-        elif name == "camera":
-            self.dim_meas = 2
-            self.sens_to_veh = np.asmatrix(calib.extrinsic.transform).reshape(4, 4)
-            self.f_i = calib.intrinsic[0]
-            self.f_j = calib.intrinsic[1]
-            self.c_i = calib.intrinsic[2]
-            self.c_j = calib.intrinsic[3]
-            self.fov = [-0.35, 0.35]
-        else:
-            raise ValueError(name)
-        self.veh_to_sens = np.linalg.inv(self.sens_to_veh)
+        transform = np.eye(4, dtype=float)
+        angular_bounds = (-np.pi / 2, np.pi / 2)
+        if name == "camera":
+            intrinsics = np.asarray(calib.intrinsic, dtype=float)
+            if intrinsics.size < 4:
+                raise ValueError("Camera calibration needs fx, fy, cx, cy")
+            self.f_i, self.f_j, self.c_i, self.c_j = intrinsics[:4]
+            self.image_width = float(calib.width)
+            if (
+                not np.isfinite(intrinsics[:4]).all()
+                or min(self.f_i, self.f_j, self.image_width) <= 0
+                or not np.isfinite(self.image_width)
+            ):
+                raise ValueError("Camera focal lengths and image width must be positive")
+            transform = np.asarray(calib.extrinsic.transform, dtype=float).reshape(4, 4)
+            angular_bounds = np.arctan(
+                (self.c_i - np.array([self.image_width, 0.0])) / self.f_i
+            )
+        self.sens_to_veh = np.asmatrix(transform)
+        self.veh_to_sens = np.asmatrix(np.linalg.inv(transform))
+        self.fov = tuple(float(bound) for bound in angular_bounds)
+
+    def _position_in_sensor(self, x: Matrix) -> np.ndarray:
+        position = np.asarray(x, dtype=float).reshape(-1)[:3]
+        transform = np.asarray(self.veh_to_sens)
+        return transform[:3, :3] @ position + transform[:3, 3]
+
+    def _camera_position(self, x: Matrix) -> np.ndarray:
+        position = self._position_in_sensor(x)
+        if not np.isfinite(position).all() or position[0] <= self.depth_epsilon:
+            raise ValueError(
+                "Camera projection needs finite coordinates and positive depth "
+                f"> {self.depth_epsilon:g}; sensor position={position.tolist()}"
+            )
+        return position
 
     def in_fov(self, x: Matrix) -> bool:
-        """Return True if state ``x`` lies inside this sensor's field of view."""
-        return self._cam.is_in_field_of_view(x, self)
+        """Return whether the student visibility model admits this state.
+
+        Args:
+            x: Vehicle-frame state vector.
+
+        Returns:
+            Visibility, with nonfinite or nonpositive camera depth always rejected.
+        """
+        if self.name == "camera":
+            position = self._position_in_sensor(x)
+            if not np.isfinite(position).all() or position[0] <= self.depth_epsilon:
+                return False
+        return bool(self._cam.is_in_field_of_view(x, self))
 
     def get_hx(self, x: Matrix) -> Matrix:
-        """Return predicted measurement h(x) in sensor coordinates."""
-        if self.name == "lidar":
-            pos_veh = np.ones((4, 1))
-            pos_veh[0:3] = x[0:3]
-            pos_sens = self.veh_to_sens * pos_veh
-            return pos_sens[0:3]
-        return self._cam.camera_measurement_prediction(x, self)
+        """Predict the position or pixel observation.
 
-    def get_H(self, x: Matrix) -> Matrix:
-        """Return measurement Jacobian H = dh/dx at state ``x``."""
-        H = np.asmatrix(np.zeros((self.dim_meas, params.dim_state)))
-        R = self.veh_to_sens[0:3, 0:3]
-        T = self.veh_to_sens[0:3, 3]
-        if self.name == "lidar":
-            H[0:3, 0:3] = R
-        elif self.name == "camera":
-            px, py, pz = float(x[0, 0]), float(x[1, 0]), float(x[2, 0])
-            Rf = np.asarray(R, dtype=np.float64)
-            Tf = np.asarray(T, dtype=np.float64).reshape(3)
-            denom = float(Rf[0, 0] * px + Rf[0, 1] * py + Rf[0, 2] * pz + Tf[0])
-            if denom == 0:
-                raise ValueError(
-                    "Camera Jacobian undefined: projected x coordinate is zero"
-                )
-            H[0, 0] = float(
-                self.f_i
-                * (
-                    -Rf[1, 0] / denom
-                    + Rf[0, 0]
-                    * (Rf[1, 0] * px + Rf[1, 1] * py + Rf[1, 2] * pz + Tf[1])
-                    / (denom**2)
-                )
-            )
-            H[1, 0] = float(
-                self.f_j
-                * (
-                    -Rf[2, 0] / denom
-                    + Rf[0, 0]
-                    * (Rf[2, 0] * px + Rf[2, 1] * py + Rf[2, 2] * pz + Tf[2])
-                    / (denom**2)
-                )
-            )
-            H[0, 1] = float(
-                self.f_i
-                * (
-                    -Rf[1, 1] / denom
-                    + Rf[0, 1]
-                    * (Rf[1, 0] * px + Rf[1, 1] * py + Rf[1, 2] * pz + Tf[1])
-                    / (denom**2)
-                )
-            )
-            H[1, 1] = float(
-                self.f_j
-                * (
-                    -Rf[2, 1] / denom
-                    + Rf[0, 1]
-                    * (Rf[2, 0] * px + Rf[2, 1] * py + Rf[2, 2] * pz + Tf[2])
-                    / (denom**2)
-                )
-            )
-            H[0, 2] = float(
-                self.f_i
-                * (
-                    -Rf[1, 2] / denom
-                    + Rf[0, 2]
-                    * (Rf[1, 0] * px + Rf[1, 1] * py + Rf[1, 2] * pz + Tf[1])
-                    / (denom**2)
-                )
-            )
-            H[1, 2] = float(
-                self.f_j
-                * (
-                    -Rf[2, 2] / denom
-                    + Rf[0, 2]
-                    * (Rf[2, 0] * px + Rf[2, 1] * py + Rf[2, 2] * pz + Tf[2])
-                    / (denom**2)
-                )
-            )
-        return H
+        Args:
+            x: Vehicle-frame state vector.
+
+        Returns:
+            A column vector in measurement coordinates.
+
+        Raises:
+            ValueError: If camera coordinates are nonfinite or depth is not positive.
+        """
+        if self.name == "camera":
+            self._camera_position(x)
+            return self._cam.camera_measurement_prediction(x, self)
+        return np.asmatrix(self._position_in_sensor(x)).T
+
+    def get_H(self, x: Matrix) -> np.matrix:
+        """Differentiate the observation with respect to position and velocity.
+
+        Args:
+            x: Vehicle-frame state vector.
+
+        Returns:
+            Measurement-by-state Jacobian, with zero velocity columns.
+
+        Raises:
+            ValueError: If camera coordinates are nonfinite or depth is not positive.
+        """
+        rotation = np.asarray(self.veh_to_sens)[:3, :3]
+        derivative = rotation
+        if self.name == "camera":
+            depth, left, up = self._camera_position(x)
+            projection = np.array([
+                [self.f_i * left / depth**2, -self.f_i / depth, 0.0],
+                [self.f_j * up / depth**2, 0.0, -self.f_j / depth],
+            ])
+            derivative = projection @ rotation
+        return np.asmatrix(
+            np.pad(derivative, ((0, 0), (0, params.dim_state - 3)))
+        )
 
     def generate_measurement(
         self, num_frame: int, z: Sequence[float], meas_list: list[Any]
     ) -> list[Any]:
-        """Append a ``Measurement`` built from raw detection ``z`` to ``meas_list``.
+        """Append an observation at the zero-based dataset frame timestamp.
 
         Args:
-            num_frame: Waymo frame index (1-based in the lab loop).
-            z: Lidar box vector or camera label coordinates.
-            meas_list: List mutated in place.
+            num_frame: Nonnegative dataset frame index; frame zero has time zero.
+            z: Lidar ``[x, y, z, height, width, length, yaw]`` or camera ``[u, v]``.
+            meas_list: Observation list to extend in place.
 
         Returns:
-            The same ``meas_list`` reference for chaining.
+            The supplied list, extended by one observation.
         """
-        if self.name == "lidar":
-            meas_list.append(Measurement(num_frame, z, self))
-        elif self.name == "camera":
-            payload = self._cam.build_camera_measurement(z, self)
-            z_mat = payload["z"]
-            meas_list.append(
-                Measurement(
-                    num_frame,
-                    [float(z_mat[0, 0]), float(z_mat[1, 0])],
-                    self,
-                    z_mat=z_mat,
-                    R=payload["R"],
-                )
-            )
+        payload = {}
+        if self.name == "camera":
+            built = self._cam.build_camera_measurement(z, self)
+            payload = {"z_mat": built["z"], "R": built["R"]}
+        meas_list.append(Measurement(num_frame, z, self, **payload))
         return meas_list
 
 
 class Measurement:
-    """Single sensor measurement with z, R, and optional box attributes."""
+    """Observation values, covariance, time, and optional lidar box dimensions.
+
+    Args:
+        num_frame: Nonnegative, zero-based dataset frame index.
+        z: Native observation vector, followed by lidar box dimensions and yaw.
+        sensor: Adapter that generated this observation.
+        z_mat: Optional prebuilt column vector from the camera exercise.
+        R: Optional covariance from the camera exercise.
+
+    Raises:
+        ValueError: If the frame index is negative.
+    """
 
     def __init__(
         self,
         num_frame: int,
         z: Sequence[float],
         sensor: Sensor,
-        z_mat: Optional[Matrix] = None,
-        R: Optional[Matrix] = None,
+        z_mat: Matrix | None = None,
+        R: Matrix | None = None,
     ) -> None:
-        """Build a measurement at frame ``num_frame`` from detection ``z``.
-
-        Args:
-            num_frame: Frame index used to compute timestamp ``t``.
-            z: Raw detection vector (lidar 7-D box or camera u,v).
-            sensor: Originating sensor.
-            z_mat: Optional pre-built measurement matrix (camera).
-            R: Optional measurement noise (camera); lidar uses params sigmas.
-        """
-        self.t = (num_frame - 1) * params.dt
+        if num_frame < 0:
+            raise ValueError(f"Measurement frame index must be nonnegative: {num_frame}")
         self.sensor = sensor
+        self.t = float(num_frame * params.dt)
+        values = np.asarray(z if z_mat is None else z_mat, dtype=float).reshape(-1)
+        self.z = np.asmatrix(values[:sensor.dim_meas]).T
+        self.R = _noise_covariance(sensor.name) if R is None else np.asmatrix(R)
         if sensor.name == "lidar":
-            self.z = np.asmatrix(np.array([[z[0]], [z[1]], [z[2]]], dtype=np.float64))
-            self.R = np.asmatrix(
-                [
-                    [params.sigma_lidar_x**2, 0, 0],
-                    [0, params.sigma_lidar_y**2, 0],
-                    [0, 0, params.sigma_lidar_z**2],
-                ]
-            )
-            self.height = z[3]
-            self.width = z[4]
-            self.length = z[5]
-            self.yaw = z[6]
-        else:
-            self.z = z_mat if z_mat is not None else np.asmatrix(np.array([[z[0]], [z[1]]]))
-            self.R = R
+            self.height, self.width, self.length, self.yaw = map(float, values[3:7])

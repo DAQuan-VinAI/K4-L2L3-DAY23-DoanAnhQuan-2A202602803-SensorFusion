@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import importlib.util
+import hashlib
 import os
 import sys
 from pathlib import Path
@@ -11,12 +12,13 @@ from types import ModuleType
 from fusion_lab.paths import PLATFORM_ROOT, student_root
 
 
-def _load_module(name: str, path: Path) -> ModuleType:
+def _load_module(name: str, path: Path, package: str) -> ModuleType:
     """Load a single workspace module from disk.
 
     Args:
         name: Module stem (filename without `.py`).
         path: Absolute path to the `.py` file.
+        package: Namespace isolated by the workspace absolute path.
 
     Returns:
         Executed module object registered in ``sys.modules``.
@@ -24,7 +26,7 @@ def _load_module(name: str, path: Path) -> ModuleType:
     Raises:
         ImportError: If the spec or loader cannot be created.
     """
-    spec = importlib.util.spec_from_file_location(f"day23_workspace.{name}", path)
+    spec = importlib.util.spec_from_file_location(f"{package}.{name}", path)
     if spec is None or spec.loader is None:
         raise ImportError(f"Cannot load {path}")
     mod = importlib.util.module_from_spec(spec)
@@ -47,12 +49,13 @@ def load_workspace() -> dict[str, ModuleType]:
     ws = root / "workspace"
     if not ws.is_dir():
         raise FileNotFoundError(f"No workspace/ under {root}")
-    ws_str = str(ws)
-    if ws_str not in sys.path:
-        sys.path.insert(0, ws_str)
+    package = "day23_workspace_" + hashlib.sha256(str(ws).encode()).hexdigest()[:12]
+    namespace = ModuleType(package)
+    namespace.__path__ = [str(ws)]
+    sys.modules[package] = namespace
     modules = {}
-    for py in sorted(ws.glob("*.py")):
+    for py in sorted(ws.glob("*.py"), key=lambda path: (path.stem != "kalman", path.name)):
         if py.name.startswith("_"):
             continue
-        modules[py.stem] = _load_module(py.stem, py)
+        modules[py.stem] = _load_module(py.stem, py, package)
     return modules

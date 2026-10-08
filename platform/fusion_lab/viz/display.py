@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import warnings
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -10,6 +11,10 @@ from typing import Any
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
+
+
+# Used when an OpenCV build without GUI support forces a fallback to PNG export.
+DEFAULT_FALLBACK_DIR = Path("artifacts/viz")
 
 
 @dataclass
@@ -33,14 +38,29 @@ def show_or_save(
     cfg: VizConfig,
     frame_id: int = 0,
 ) -> None:
-    """Show with OpenCV locally or write PNG when headless."""
+    """Show with OpenCV locally or write PNG when headless.
+
+    The pip wheel ``opencv-python-headless`` has no GUI backend on Linux and
+    Windows, so ``cv2.imshow`` raises ``cv2.error`` there. In that case the
+    config switches to headless mode once and later frames are saved as PNG.
+    """
+    if cfg.mode == "local":
+        try:
+            cv2.imshow(name, image)
+            cv2.waitKey(cfg.pause_ms)
+        except cv2.error as exc:
+            cfg.mode = "headless"
+            cfg.save_dir = cfg.save_dir or DEFAULT_FALLBACK_DIR
+            warnings.warn(
+                f"cv2.imshow is unavailable ({exc.err or exc}); "
+                f"saving PNG frames to {cfg.save_dir} instead.",
+                RuntimeWarning,
+                stacklevel=2,
+            )
     if cfg.save_dir:
         cfg.save_dir.mkdir(parents=True, exist_ok=True)
         out = cfg.save_dir / f"{name}_{frame_id:04d}.png"
         cv2.imwrite(str(out), image)
-    if cfg.mode == "local":
-        cv2.imshow(name, image)
-        cv2.waitKey(cfg.pause_ms)
 
 
 def show_figure_or_save(

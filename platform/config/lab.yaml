@@ -1,5 +1,0 @@
-segment: training_segment-1005081002024129653_5313_150_5333_150_with_camera_labels.tfrecord
-frame_start: 0
-frame_end: 30
-viz:
-  mode: local

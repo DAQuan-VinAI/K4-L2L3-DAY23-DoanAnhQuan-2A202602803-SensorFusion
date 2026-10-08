@@ -5,20 +5,34 @@ from __future__ import annotations
 from types import ModuleType
 from typing import Any
 
+
 class Filter:
-    """Wrap student kalman pure functions for track objects."""
+    """Apply student Kalman functions to mutable platform tracks.
+
+    Args:
+        kalman_mod: Module from the selected student workspace.
+    """
 
     def __init__(self, kalman_mod: ModuleType) -> None:
         self._k = kalman_mod
 
     def predict(self, track: Any) -> None:
-        """Run one EKF predict step on ``track`` using the student kalman module."""
+        """Advance the stored state and covariance with the motion model.
+
+        Args:
+            track: Mutable object exposing ``x`` and ``P``.
+        """
         x, P = self._k.ekf_predict(track.x, track.P)
         track.x = x
         track.P = P
 
     def update(self, track: Any, meas: Any) -> None:
-        """Run one EKF update on ``track`` with ``meas`` and refresh box attributes."""
+        """Correct the stored estimate and update lidar box attributes.
+
+        Args:
+            track: Mutable estimate with ``update_attributes``.
+            meas: Associated observation for the correction.
+        """
         x, P = self._k.ekf_update(track.x, track.P, meas)
         track.x = x
         track.P = P
