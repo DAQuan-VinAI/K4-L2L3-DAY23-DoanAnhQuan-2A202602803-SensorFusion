@@ -1,0 +1,12 @@
+services:
+  lab:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    volumes:
+      - ../student:/lab/student
+      - ../data:/data:ro
+    environment:
+      DAY23_STUDENT_ROOT: /lab/student
+      FUSION_LAB_PLATFORM: /lab/platform
+      DAY23_HEADLESS: "1"

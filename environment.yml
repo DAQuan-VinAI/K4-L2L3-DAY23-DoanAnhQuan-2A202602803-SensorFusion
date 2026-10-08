@@ -1,0 +1,21 @@
+name: day23_sensor_fusion
+channels:
+  - conda-forge
+dependencies:
+  - python=3.12
+  - numpy
+  - scipy
+  - matplotlib
+  - pyyaml
+  - shapely
+  - tqdm
+  - pip
+  - pip:
+      - torch
+      - "opencv-python-headless>=4.10,<5"
+      - "protobuf>=6.33.5,<7"
+      - easydict
+      - pytest
+      - -e ./platform/third_party/waymo_reader
+      - -e ./platform
+      - -e ./student
