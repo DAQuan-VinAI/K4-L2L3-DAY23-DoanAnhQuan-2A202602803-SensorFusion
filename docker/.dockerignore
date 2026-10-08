@@ -1,7 +1,0 @@
-.git
-Theory
-**/__pycache__
-**/.pytest_cache
-**/*.tfrecord
-**/*.pth
-.remember

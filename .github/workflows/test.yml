@@ -1,0 +1,21 @@
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+      # CPU wheel avoids pulling the multi-GB CUDA dependency set from PyPI.
+      - run: python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
+      - run: python -m pip install -e platform/third_party/waymo_reader -e platform -e student pytest
+      # Unit tests only: integration runs need Waymo segments and weights, which are not public.
+      - run: python -m pytest -q student/tests
