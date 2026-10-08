@@ -1,12 +1,12 @@
 [build-system]
-requires = ["setuptools>=61"]
+requires = ["setuptools>=64"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "day23_student"
 version = "0.1.0"
 description = "Day 23 student workspace pack"
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 dependencies = [
   "numpy",
   "scipy",

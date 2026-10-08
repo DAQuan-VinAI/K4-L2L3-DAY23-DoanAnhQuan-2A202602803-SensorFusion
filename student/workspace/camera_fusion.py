@@ -1,12 +1,13 @@
 """Camera field-of-view checks and pinhole measurement modeling.
 
-Part G — implement ``# vi: TODO`` (camera path on README diagram).
-Jacobian H is provided by platform; you implement h(x), FOV, and R here.
+Part G supplies visibility, projection, and pixel covariance (README.vi.md §2).
+The platform differentiates projection using a chain-rule Jacobian.
 """
 
 from __future__ import annotations
 
-from typing import Any, Sequence
+from typing import Any
+from typing import Sequence
 
 import numpy as np
 
@@ -20,13 +21,16 @@ def is_in_field_of_view(x: Matrix, sensor: Any) -> bool:
 
     Args:
         x: State vector (6x1) with position in vehicle frame.
-        sensor: Camera sensor with ``veh_to_sens``, ``fov`` (radians).
+        sensor: Lidar or camera adapter with ``veh_to_sens`` and ``fov``
+            (radians); camera also supplies ``depth_epsilon``.
 
     Returns:
-        True if horizontal angle in sensor frame lies in ``sensor.fov``.
+        True if sensor coordinates are finite and the horizontal angle is within
+        ``sensor.fov``. A camera additionally requires depth > ``depth_epsilon``.
     """
-    # vi: TODO Part G — đưa x sang tọa độ sensor; angle = atan2(y_s, x_s);
-    # vi: kiểm tra fov[0] <= angle <= fov[1].
+    # vi: TODO Part G — p_s = R @ p + t; loại tọa độ không hữu hạn.
+    # vi: Camera cần x_s > sensor.depth_epsilon; FOV từ nội tại và bề rộng ảnh.
+    # vi: Với cả lidar/camera: kiểm tra atan2(y_s, x_s) nằm trong sensor.fov.
     raise NotImplementedError("TODO: implement is_in_field_of_view")
 
 
@@ -41,10 +45,12 @@ def camera_measurement_prediction(x: Matrix, sensor: Any) -> Matrix:
         2x1 predicted pixel coordinates as ``np.matrix``.
 
     Raises:
-        NameError: If projection is undefined (e.g. point behind camera).
+        ValueError: With coordinate context if sensor coordinates are nonfinite
+            or depth is at most ``sensor.depth_epsilon``.
     """
-    # vi: TODO Part G — pos_sens = veh_to_sens @ [x,y,z,1]; u,v pinhole từ cx,cy,cz;
-    # vi: công thức lab: u = c_i - f_i * cy/cx, v = c_j - f_j * cz/cx; cx<=0 → lỗi.
+    # vi: TODO Part G — tính p_s = R @ p + t; trước phép chia kiểm tra hữu hạn
+    # vi: và x_s > sensor.depth_epsilon, ngược lại raise ValueError có tọa độ.
+    # vi: u = c_i - f_i * y_s/x_s; v = c_j - f_j * z_s/x_s.
     raise NotImplementedError("TODO: implement camera_measurement_prediction")
 
 
@@ -60,24 +66,3 @@ def build_camera_measurement(z: Sequence[float], sensor: Any) -> dict[str, Any]:
     """
     # vi: TODO Part G — z mat 2x1; R diag sigma_cam_i^2, sigma_cam_j^2 từ params.
     raise NotImplementedError("TODO: implement build_camera_measurement")
-
-
-def register_camera_detection(
-    num_frame: int,
-    z: Sequence[float],
-    sensor: Any,
-    meas_list: list[Any],
-) -> list[Any]:
-    """Append a camera detection measurement dict to meas_list.
-
-    Args:
-        num_frame: Frame index from Waymo loop.
-        z: Pixel measurement ``[u, v]``.
-        sensor: Camera sensor.
-        meas_list: List mutated in place.
-
-    Returns:
-        Updated ``meas_list``.
-    """
-    # vi: TODO Part G — t = (num_frame-1)*dt; append dict t, sensor, z, R.
-    raise NotImplementedError("TODO: implement register_camera_detection")

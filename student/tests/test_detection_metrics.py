@@ -1,6 +1,4 @@
-from types import SimpleNamespace
-
-import numpy as np
+import pytest
 
 
 def test_rotated_iou_identical(workspace_modules):
@@ -14,5 +12,11 @@ def test_precision_recall_counts(workspace_modules):
     dm = workspace_modules["detection_metrics"]
     counts = dm.precision_recall_counts([True, True], 1, 2)
     p, r = dm.precision_recall_from_counts(counts)
-    assert 0 <= p <= 1
-    assert 0 <= r <= 1
+    assert counts == {
+        "all_positives": 2,
+        "true_positives": 1,
+        "false_negatives": 1,
+        "false_positives": 1,
+    }
+    assert p == pytest.approx(0.5)
+    assert r == pytest.approx(0.5)

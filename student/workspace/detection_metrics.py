@@ -16,14 +16,27 @@ from shapely.geometry import Polygon
 def box_corners(
     x: float, y: float, w: float, l: float, yaw: float
 ) -> list[tuple[float, float]]:
-    """Return quadrilateral corners [front-left, rear-left, rear-right, front-right]."""
-    cos_yaw = np.cos(yaw)
-    sin_yaw = np.sin(yaw)
-    fl = (x - w / 2 * cos_yaw - l / 2 * sin_yaw, y - w / 2 * sin_yaw + l / 2 * cos_yaw)
-    rl = (x - w / 2 * cos_yaw + l / 2 * sin_yaw, y - w / 2 * sin_yaw - l / 2 * cos_yaw)
-    rr = (x + w / 2 * cos_yaw + l / 2 * sin_yaw, y + w / 2 * sin_yaw - l / 2 * cos_yaw)
-    fr = (x + w / 2 * cos_yaw - l / 2 * sin_yaw, y + w / 2 * sin_yaw + l / 2 * cos_yaw)
-    return [fl, rl, rr, fr]
+    """Return box corners using Waymo's length-along-heading convention.
+
+    Args:
+        x: Vehicle-frame box centre x coordinate in metres.
+        y: Vehicle-frame box centre y coordinate in metres.
+        w: Width perpendicular to the heading in metres.
+        l: Length along the heading in metres.
+        yaw: Heading from the vehicle-frame positive x axis, in radians.
+
+    Returns:
+        Corners in front-left, rear-left, rear-right, front-right order.
+    """
+    heading = np.array([np.cos(yaw), np.sin(yaw)]) * (l / 2)
+    lateral = np.array([-np.sin(yaw), np.cos(yaw)]) * (w / 2)
+    centre = np.array([x, y])
+    return [
+        tuple(centre + heading + lateral),
+        tuple(centre - heading + lateral),
+        tuple(centre - heading - lateral),
+        tuple(centre + heading - lateral),
+    ]
 
 
 def rotated_iou(

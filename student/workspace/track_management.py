@@ -1,12 +1,12 @@
 """Track initialization, scoring, and deletion helpers.
 
-Part H — implement ``# vi: TODO`` (track lifecycle on README diagram).
-Use ``get_tracking_params()`` for window, thresholds, max_P.
+Part H supplies lidar-driven existence decisions (README.vi.md §2).
+Use tracking parameters for the score window, thresholds, and covariance limit.
 """
 
 from __future__ import annotations
 
-from typing import Any, Sequence
+from typing import Any
 
 # vi: from fusion_lab.workspace_support import get_tracking_params
 # vi: import numpy as np
@@ -27,41 +27,38 @@ def init_track_state_from_meas(meas: Any) -> dict[str, Any]:
 
 
 def update_track_score(track: dict[str, Any], associated: bool) -> dict[str, Any]:
-    """Update track score and state after association or a missed update.
+    """Update existence once per lidar frame; camera passes never call this helper.
+
+    A hit adds 1/window, capped at one; an in-FOV miss subtracts 1/window.
+    Confirm above confirmed_threshold, and preserve confirmed state after misses.
 
     Args:
         track: Dict-like track with ``score``, ``state``.
-        associated: True if measurement matched this frame.
+        associated: True for a lidar hit; False for a lidar miss within the lidar FOV.
 
     Returns:
         Updated track dict.
     """
-    # vi: TODO Part H — associated: +1/window, tentative/confirmed theo confirmed_threshold;
-    # vi: miss: -1/window, clamp score khi cần.
+    # vi: TODO Part H — chỉ lidar: hit +1/window (tối đa 1), miss trong FOV -1/window.
+    # vi: score > confirmed_threshold → confirmed; đã confirmed không hạ trạng thái.
+    # vi: Camera không gọi hàm này; track chưa confirmed với hit → tentative.
     raise NotImplementedError("TODO: implement update_track_score")
 
 
 def should_delete_track(track: dict[str, Any]) -> bool:
-    """Return True if track score and position covariance indicate deletion.
+    """Return whether a lidar lifecycle pass should remove this track.
+
+    Delete if either horizontal variance exceeds max_P, or if a confirmed
+    track has score < delete_threshold, or an unconfirmed track has score <= 0.
+    Camera passes never trigger deletion.
 
     Args:
-        track: Dict with ``score``, ``P``.
+        track: Dict with ``score``, ``state``, ``P``.
 
     Returns:
         True if track should be removed.
     """
-    # vi: TODO Part H — score <= delete_threshold và P[0,0] hoặc P[1,1] >= max_P.
+    # vi: TODO Part H — Pxx hoặc Pyy > max_P: xóa bất kể score.
+    # vi: confirmed: xóa khi score < delete_threshold; chưa confirmed: score <= 0.
+    # vi: Các điều kiện là OR; camera không đánh giá/xóa track.
     raise NotImplementedError("TODO: implement should_delete_track")
-
-
-def tracks_to_delete(track_list: Sequence[Any]) -> list[Any]:
-    """Return tracks that satisfy deletion criteria.
-
-    Args:
-        track_list: List of track dicts.
-
-    Returns:
-        Sublist marked for deletion.
-    """
-    # vi: TODO Part H — list comprehension gọi should_delete_track.
-    raise NotImplementedError("TODO: implement tracks_to_delete")

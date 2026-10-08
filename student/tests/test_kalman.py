@@ -3,12 +3,7 @@ import pytest
 import numpy as np
 
 
-pytestmark = pytest.mark.xfail(
-    raises=NotImplementedError,
-    reason="Part E is a student exercise: implement the kalman.py TODOs first.",
-    strict=False,
-)
-
+pytestmark = pytest.mark.student_exercise
 
 def test_build_F_shape(workspace_modules):
     k = workspace_modules["kalman"]

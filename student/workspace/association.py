@@ -1,17 +1,19 @@
 """Measurement-to-track association via Mahalanobis gating and greedy matching.
 
-Part F — implement ``# vi: TODO`` (README.vi.md §2: AssocL / AssocC after EKF predict).
-Import ``kalman`` for innovation helpers; params via get_tracking_params for gating.
+Part F supplies the association stage shown in README.vi.md §2.
+Use the workspace kalman module for innovation helpers and tracking parameters
+for the chi-square gate.
 """
 
 from __future__ import annotations
 
-from typing import Any, Sequence
+from typing import Any
+from typing import Sequence
 
 import numpy as np
 
 # vi: from fusion_lab.workspace_support import get_tracking_params
-# vi: import kalman
+# vi: Truyền hoặc dùng module kalman cùng workspace; tránh import từ workspace cũ.
 
 
 def mahalanobis_distance(track: Any, meas: Any) -> float:
@@ -47,16 +49,18 @@ def chi2_gate(mhd_sq: float, sensor: Any) -> bool:
 def association_cost_matrix(
     track_list: Sequence[Any], meas_list: Sequence[Any]
 ) -> np.matrix:
-    """Build cost matrix of Mahalanobis distances with gating (inf if outside gate).
+    """Build gated costs, checking each sensor's visibility before projection.
 
     Args:
         track_list: Active tracks.
         meas_list: Measurements for this sensor pass.
 
     Returns:
-        Cost matrix; ``np.inf`` where gated out.
+        Cost matrix; ``np.inf`` for invisible tracks or rejected chi-square gates.
+        Invisible pairs must never call the Mahalanobis/projection helpers.
     """
-    # vi: TODO Part F — vòng lặp track x meas; ô = mhd_sq hoặc inf nếu không qua gate.
+    # vi: TODO Part F — khởi tạo toàn inf; kiểm tra meas.sensor.in_fov(track.x)
+    # vi: trước MHD (camera sau lưng/độ sâu 0 không được chiếu); rồi kiểm tra chi2.
     raise NotImplementedError("TODO: implement association_cost_matrix")
 
 
@@ -74,8 +78,10 @@ def pick_next_pair(
 
     Returns:
         Tuple (track, meas, new_matrix, remaining_tracks, remaining_meas).
+        If no finite pair exists, return np.nan for track and meas and retain both lists.
     """
-    # vi: TODO Part F — argmin trên ma trận; xóa hàng/cột; trả về cặp tương ứng.
+    # vi: TODO Part F — chỉ lấy cặp hữu hạn nhỏ nhất rồi xóa hàng/cột tương ứng;
+    # vi: ma trận rỗng/toàn inf: trả np.nan, np.nan và giữ các danh sách chưa ghép.
     raise NotImplementedError("TODO: implement pick_next_pair")
 
 
@@ -83,7 +89,7 @@ def associate_and_update(
     manager: Any,
     meas_list: Sequence[Any],
     filter_obj: Any,
-    camera_fusion_mod: Any,
+    sensor: Any,
 ) -> None:
     """Greedy association loop with EKF updates and track management.
 
@@ -91,12 +97,15 @@ def associate_and_update(
         manager: Track manager (``track_list``, ``manage_tracks``, ...).
         meas_list: Lidar or camera measurements for this frame pass.
         filter_obj: Filter with ``predict`` / ``update``.
-        camera_fusion_mod: Module with ``is_in_field_of_view`` for gating visibility.
+        sensor: Explicit lidar/camera pass sensor, including empty measurement frames.
 
     Returns:
-        None; updates tracks in place.
+        None; updates tracks in place and always finishes the lifecycle pass.
+        Visibility is handled in the cost matrix, before pair removal. Camera
+        updates refine state only; lidar hits alone increase existence scores.
     """
-    # vi: TODO Part F — lặp pick_next_pair while min cost < inf;
-    # vi: nếu in_fov(track.x, meas.sensor): filter_obj.update; manager.handle_updated_track;
-    # vi: cuối cùng manager.manage_tracks(unassigned...).
+    # vi: TODO Part F — kể cả meas_list rỗng, vẫn gọi quản lý cuối lượt.
+    # vi: Ghép cặp hữu hạn, filter_obj.update rồi handle_updated_track(track, sensor).
+    # vi: Không bỏ qua FOV sau khi đã xóa cặp khỏi danh sách chưa ghép.
+    # vi: Kết thúc manager.manage_tracks(unassigned_tracks, unassigned_meas, sensor).
     raise NotImplementedError("TODO: implement associate_and_update")

@@ -1,12 +1,13 @@
 """Extended Kalman filter helpers for 6D constant-velocity motion.
 
-Part E — implement every ``# vi: TODO`` below (see README.vi.md §2).
-Use ``from fusion_lab.workspace_support import get_tracking_params`` for dt, q.
+Part E supplies prediction and correction for README.vi.md §2.
+Read the shared time step and process-noise settings with get_tracking_params().
 """
 
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any
+from typing import Optional
 
 import numpy as np
 
@@ -89,7 +90,7 @@ def innovation_covariance(P: Matrix, meas: Any, H: Matrix) -> Matrix:
     Returns:
         Innovation covariance matrix S.
     """
-    # vi: TODO Part E — S = H * P * H.T + meas.R.
+    # vi: TODO Part E — S = H @ P @ H.T + meas.R (dùng @ với cả ndarray/matrix).
     raise NotImplementedError("TODO: implement innovation_covariance")
 
 
