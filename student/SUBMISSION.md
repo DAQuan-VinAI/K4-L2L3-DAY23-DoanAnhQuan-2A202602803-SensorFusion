@@ -8,9 +8,29 @@
 
 ## Tóm tắt kết quả
 
-- Detection precision / recall (baseline Part A–D có sẵn, từ `artifacts/metrics.json`):
-- Tracking lidar-only vs fused (bắt buộc — RMSE hoặc mô tả log):
-- Fusion mode đã chạy (`--fusion compare` khuyến nghị):
+- `fusion_mode` (bắt buộc `compare`), `frames`, `segment`, `seed`:
+- `detection.precision`, `detection.recall`, `detection.tp/fp/fn`:
+- `tracking.lidar.rmse`, `matches`, `sum_sq_err`, `ghost_track_frames`, `missed_gt_frames`, `mean_confirmed_tracks`:
+- `tracking.fused.rmse`, `matches`, `sum_sq_err`, `ghost_track_frames`, `missed_gt_frames`, `mean_confirmed_tracks`:
+- Giải thích khác biệt hai mode, đọc RMSE cùng số ghép và ghost/miss:
+
+Chạy từ root repo:
+
+```bash
+fusion-run-lab --config student/config/paths.yaml --fusion compare --seed 0
+```
+
+`rmse = sqrt(sum_sq_err/matches)` trên vị trí 3D của confirmed tracks ghép
+một-một với GT xe trong cửa sổ BEV, gate XY **2.0 m**; `null` nếu không có cặp.
+Camera dùng tâm hộp 2D ground-truth FRONT có nhiễu seeded, **không** dùng camera
+detector. Kết quả này không đo hiệu quả một perception system độc lập với GT.
+
+`grade_run.log` là JSONL, mỗi `(mode,frame)` đúng một record với các trường:
+`mode`, `frame`, `det_tp`, `det_fp`, `det_fn`, `valid_gt`, `confirmed`, `matches`,
+`sum_sq_err`, `ghosts`, `misses`. Đảm bảo `matches+ghosts==confirmed` và
+`matches+misses==valid_gt`; tổng/trung bình record phải khớp `metrics.json`.
+File per-mode `metrics_lidar.json`, `metrics_fused.json`, `grade_run_lidar.log`,
+`grade_run_fused.log` được giữ để đối chiếu.
 
 ## Giải thích ngắn (Parts E–H — tự viết)
 
@@ -18,6 +38,9 @@
 2. Vì sao cần gating Mahalanobis trước khi gán?
 3. Pipeline là track-then-fuse hay fuse-then-track? Chỉ ra trên log `fusion-run-lab`.
 4. Nếu camera lệch calibration, triệu chứng gì trên innovation/residual?
+5. Vì sao `associate_and_update(..., sensor)` cần sensor tường minh ở frame rỗng?
+   Giải thích vì sao lidar quyết định score/init/delete còn camera chỉ EKF update.
+6. Nêu điều kiện xác nhận, giữ confirmed sau miss, và điều kiện xóa track.
 
 ## AI / coding assistant (nếu có)
 

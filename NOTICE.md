@@ -11,13 +11,17 @@
 - **SFA3D FPN-ResNet** — Copyright (c) 2020 Nguyen Mau Dung. MIT License; see
   [the full license](platform/third_party/objdet_models/resnet/LICENSE) and
   [upstream repository](https://github.com/maudzung/SFA3D).
-  Model weights are downloaded separately and are not included here.
+  This attribution covers the vendored network and decoding utilities under
+  `platform/third_party/objdet_models/resnet/`, plus the SFA3D-derived BEV
+  rasterization and detector adapter in `student/workspace/bev_mapping.py` and
+  `student/workspace/detection_pipeline.py`. Model weights are downloaded
+  separately and are not included here.
 - **Waymo Open Dataset** — data is not included in this repository. Access and
   redistribution are governed by [Waymo's terms](https://waymo.com/open/terms/).
   Registration and acceptance are required before receiving the course copy;
   see [data acquisition](data/README.md).
 
-The lab's structure is inspired by the Udacity Sensor Fusion nanodegree project
-but contains no Udacity code. Tracking constants and the point-cloud adapter
-were written anew; third-party projection code comes from the Apache-licensed
-Waymo reader named above.
+The repository contains no code or images from the Udacity sensor-fusion
+starter. Lab instructions and the Mermaid data-flow diagrams are original;
+tracking models use standard Kalman-filter and projective-geometry equations.
+Third-party detector and range-image projection components are attributed above.

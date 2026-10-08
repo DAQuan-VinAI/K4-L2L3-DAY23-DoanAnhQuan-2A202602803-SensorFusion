@@ -18,67 +18,43 @@ Pipeline đầy đủ **Part A → I**: LiDAR → BEV → FPN detection → metr
 
 ## 2. Kiến trúc pipeline & fusion
 
-### 2.0 Hai phần chính
+### 2.0 Detection và tracking trong một frame
 
-1. **Object detection:** deep learning trên BEV — point cloud Waymo → lưới birds-eye view → FPN-ResNet phát hiện xe → metrics IoU / precision / recall (Part B–D).
-2. **Object tracking:** EKF 6D theo thời gian — gán đo lidar (và camera khi fusion), Mahalanobis + cổng χ², quản lý vòng đời track, so sánh lidar-only vs fused (Part E–I).
+Detector đọc BEV và trả các hộp xe độc lập theo từng frame. Tracker nhận tâm hộp
+3D làm đo lidar, dự báo trạng thái 6D rồi gán đo để duy trì danh tính qua thời
+gian. Hai phần có phép đánh giá riêng: IoU cho detection và sai số vị trí của
+track confirmed được ghép một-một với nhãn xe hợp lệ cho tracking.
 
 ### 2.1 Sơ đồ data flow
 
-Hình dưới là **outline luồng dữ liệu end-to-end**: từ frame Waymo (LiDAR + camera + nhãn) qua nhánh **detection** rồi nhánh **tracking/fusion**, cuối cùng là đánh giá và hiển thị. Đọc hình từ **trái sang phải** (hoặc từ ingest xuống các bước xử lý):
-
-| Trên hình (ý nghĩa) | Trong lab Day 23 |
-|---------------------|------------------|
-| Nạp sequence / range image / point cloud | Waymo reader + `lidar_viz.py` (Part A) |
-| Point cloud → BEV | `bev_mapping.py` (Part B) |
-| Mạng 3D detection trên BEV | `detection_pipeline.py` (Part C) |
-| So khớp detection với label, P/R | `detection_metrics.py` (Part D) |
-| EKF predict / update theo thời gian | `kalman.py` (Part E) |
-| Gán đo lidar (và camera) vào track | `association.py` — **AssocL** / **AssocC** (Part F) |
-| Mô hình đo camera h(x), FOV, nhiễu R | `camera_fusion.py`; Jacobian **H** trên platform (Part G) |
-| Khởi tạo track, score, xóa track | `track_management.py` (Part H) |
-| Vòng lặp dataset, log, metrics | `fusion-run-lab` (Part I) |
-
-Các mũi tên trên hình = **thứ tự phụ thuộc dữ liệu**: detection tạo *đo lidar 3D* mỗi frame; tracker **predict** trước, rồi **associate + update** lidar, sau đó (khi fusion) thêm **associate + update** camera trên *cùng* danh sách track — không gộp raw LiDAR và ảnh trước bước detection.
-
-![Luồng thuật toán detection + tracking](docs/img/img_title_2_new.png)
-
-*Sơ đồ tổng quan pipeline; chi tiết từng Part xem bảng trên, mermaid §2.2 và bảng module bên dưới.*
+Sơ đồ Mermaid dưới đây mô tả pipeline của lab và được viết riêng cho tài liệu
+này. Camera **không chạy detector ảnh**: platform lấy tâm hộp 2D ground-truth
+của nhóm `CameraName.FRONT`, thêm nhiễu theo `--seed`, rồi dùng nó làm đo EKF.
+Đây là thử nghiệm fusion với đo mô phỏng từ nhãn, không chứng minh chất lượng
+một camera detector hoặc một hệ thống perception độc lập với ground truth.
 
 ### 2.2 Sơ đồ Part A–I (fusion-run-lab)
 
 ```mermaid
-flowchart LR
-  subgraph ingest [Ingest]
-    Waymo[Waymo tfrecord]
-    PCL[Point cloud]
-  end
-  subgraph det [Detection Part B-D]
-    BEV[bev_maps]
-    NN[FPN-ResNet]
-    LidarDets[3D detections]
-    Metrics[P/R IoU]
-  end
-  subgraph camPath [Camera Part G]
-    CamLabels[camera_labels]
-    CamModel[camera_fusion h FOV]
-    CamMeas[2D measurements]
-  end
-  subgraph track [Tracking Part E-H]
-    Predict[EKF predict Part E]
-    AssocL[AssocL Part F]
-    AssocC[AssocC Part F]
-    TrkMgmt[track lifecycle Part H]
-  end
-  Waymo --> PCL --> BEV --> NN --> LidarDets
-  LidarDets --> Metrics
-  Waymo --> CamLabels --> CamModel --> CamMeas
-  LidarDets --> AssocL
-  CamMeas --> AssocC
-  Predict --> AssocL
-  Predict --> AssocC
-  AssocL --> TrkMgmt
-  AssocC --> TrkMgmt
+flowchart TD
+  Frame["Waymo Frame k"] --> A["A: point cloud và range image"]
+  A --> B["B: BEV intensity / height / density"]
+  B --> C["C: FPN hộp xe 3D; tâm XYZ"]
+  Frame --> GT["Nhãn xe trong cửa sổ BEV"]
+  C --> D["D: IoU, TP / FP / FN"]
+  GT --> D
+  C --> L["Đo lidar 3D"]
+  Frame --> Cam["Nhãn FRONT 2D + nhiễu seeded"]
+  Cam --> G["G: FOV, projection, covariance"]
+  Prev["Tracks frame trước"] --> E["E: predict một lần"]
+  E --> FL["F: lidar association + EKF update"]
+  L --> FL
+  FL --> H["H: lidar score / init / delete"]
+  H --> FC["F: camera association + EKF update"]
+  G --> FC
+  FC --> I["I: confirmed tracks, ghép GT, JSONL / metrics"]
+  H --> I
+  GT --> I
 ```
 
 | Part | Module | Vai trò | Bạn implement? |
@@ -113,7 +89,7 @@ flowchart LR
 | 3 | Tạo **đo lidar** từ detection |
 | 4 | **EKF predict** mọi track (một lần, trước gán) |
 | 5 | **AssocL:** gán lidar → EKF update → track management (`manage_tracks`) |
-| 6 | (Fusion) Tạo **đo camera** → **AssocC:** gán camera → update → track management lần nữa |
+| 6 | (Fusion) Đo FRONT 2D có nhiễu → **AssocC:** gán camera → EKF update; không đổi lifecycle |
 
 **Chế độ `--fusion`:**
 
@@ -122,6 +98,22 @@ flowchart LR
 | `lidar` | Chỉ bước 3–5 (tracking lidar-only) |
 | `fused` | Bước 3–6 (lidar + camera) |
 | `compare` | Chạy cả hai, ghi metrics so sánh |
+
+### Vòng đời track và API sensor
+
+`associate_and_update(manager, meas_list, filter_obj, sensor)` nhận `sensor`
+tường minh kể cả khi `meas_list` rỗng; kết thúc bằng
+`manager.manage_tracks(unassigned_tracks, unassigned_meas, sensor)`. Ghép cặp
+kiểm tra FOV **trước** Mahalanobis/projection; camera yêu cầu tọa độ hữu hạn và
+độ sâu dương > `1e-6` m. Không bỏ cặp sau khi đã xóa khỏi danh sách chưa ghép.
+
+Chỉ lượt **lidar** quyết định tồn tại, một lần/frame: hit cộng `1/window` (tối
+đa 1), miss trong FOV trừ `1/window`. `score > confirmed_threshold` xác nhận
+track; một miss không hạ trạng thái confirmed. Xóa khi `P[0,0]` hoặc `P[1,1]`
+> `max_P`, hoặc confirmed có `score < delete_threshold`, hoặc chưa confirmed
+có `score <= 0`. Camera chỉ cập nhật trạng thái EKF, không cộng/trừ score,
+không khởi tạo và không xóa track. Không có nhóm FRONT nghĩa là không có dữ
+liệu camera. FOV camera được suy ra từ intrinsics và chiều rộng ảnh calibration.
 
 ### 2.4 Thời gian: Waymo frame vs predict–update từng sensor
 
@@ -139,7 +131,7 @@ Mỗi lần có measurement mới, tracker thường **predict state tới thờ
 |-----------|-----------|
 | Đơn vị thời gian | Một record **`Frame`** Waymo = một “tick” đã **đồng bộ** cho perception (`timestamp_micros` ở mức frame; LiDAR, nhãn, `camera_labels` cùng frame). |
 | Detection + tracking | Mỗi vòng lặp đọc **một** `frame`: PCL/detection lidar và (khi fusion) nhãn/đo camera **cùng index frame** — không hai queue sensor riêng. |
-| Timestamp tracking | Mọi `Measurement` gán `t = (num_frame - 1) * dt` (`dt` từ `get_tracking_params()`, mặc định 0.1 s) — **lidar và camera cùng `t`** trong frame đó. Lab **không** đọc `pose_timestamp` / trigger time từng ảnh. |
+| Timestamp tracking | Mọi `Measurement` gán `t = num_frame * dt`, với `num_frame` là chỉ số frame trong segment (không trừ `frame_start`) (`dt` từ `get_tracking_params()`, mặc định 0.1 s) — frame 0 có `t = 0`, **lidar và camera cùng `t`** trong frame đó. Lab **không** đọc `pose_timestamp` / trigger time từng ảnh. |
 | Predict / update | **Một** `predict` cho mọi track **mỗi frame**, rồi **AssocL** (chỉ `update` lidar), rồi **AssocC** (chỉ `update` camera) — **không** `predict` lại giữa lidar và camera. |
 
 Coi như mọi đo trong frame đều thuộc **cùng bước thời gian logic** \(t_k\); hai lần update lidar rồi camera là **cập nhật nối tiếp cùng track** sau một lần dự báo (xấp xỉ EKF khi nhiều measurement cùng timestamp).
@@ -290,19 +282,50 @@ Bài nộp gồm **E–H** + log Waymo + [student/SUBMISSION.md](SUBMISSION.md).
 
 ```bash
 export DAY23_STUDENT_ROOT="$(pwd)/student"
-fusion-run-lab --config student/config/paths.yaml --fusion fused
-fusion-run-lab --config student/config/paths.yaml --fusion compare
+fusion-run-lab --config student/config/paths.yaml --fusion fused --seed 0
+fusion-run-lab --config student/config/paths.yaml --fusion compare --seed 0
 ```
 
-Kết quả:
+Kết quả trong `student/artifacts/`:
 
-- `student/artifacts/grade_run.log`
-- `student/artifacts/metrics.json`
-- (Headless) PNG trong `student/artifacts/viz/` nếu `DAY23_HEADLESS=1`
+- `metrics.json`: schema `{detection, tracking, fusion_mode, frames, seed, segment}`.
+- `grade_run.log`: JSON Lines, một record cho mỗi `(mode, frame)`.
+- Compare giữ thêm `metrics_lidar.json`, `metrics_fused.json`,
+  `grade_run_lidar.log`, `grade_run_fused.log`; file chính gộp cả hai mode.
 
-Bản cài mặc định dùng OpenCV headless; đặt `DAY23_HEADLESS=1` để lưu PNG.
-Nếu tự cài OpenCV có GUI, có thể dùng `DAY23_VIZ_MODE=local` trên desktop.
-Export CVAT tùy chọn qua `fusion_lab.export_cvat`.
+| Đường dẫn trong metrics | Ý nghĩa |
+|-------------------------|---------|
+| `detection.precision`, `detection.recall` | `tp/(tp+fp)`, `tp/(tp+fn)`; 0 khi mẫu số 0 |
+| `detection.tp`, `detection.fp`, `detection.fn` | Tổng đếm ghép IoU một-một theo frame |
+| `tracking.lidar`, `tracking.fused` | Kết quả từng mode; mode không chạy là `null` |
+| `tracking.<mode>.rmse` | `sqrt(sum_sq_err/matches)` theo khoảng cách Euclidean 3D, đơn vị m; `null` nếu không ghép được track |
+| `tracking.<mode>.matches`, `tracking.<mode>.sum_sq_err` | Số cặp track–GT và tổng bình phương sai số vị trí 3D (m²) |
+| `tracking.<mode>.ghost_track_frames` | Tổng confirmed tracks không ghép được GT qua các frame |
+| `tracking.<mode>.missed_gt_frames` | Tổng nhãn xe hợp lệ không ghép được confirmed track qua các frame |
+| `tracking.<mode>.mean_confirmed_tracks` | Trung bình số confirmed tracks/frame |
+| `fusion_mode`, `frames`, `seed`, `segment` | `lidar/fused/compare`, `[start,end]` (inclusive), seed, tên TFRecord |
+
+GT hợp lệ là nhãn `TYPE_VEHICLE` có tâm trong `lim_x`, `lim_y`, `lim_z` của
+detector; không lọc số điểm lidar. Detection dùng cùng model/frame ở hai mode.
+Tracking chỉ dùng confirmed tracks, ghép một-một trên cạnh có khoảng cách XY
+≤ **2.0 m**, ưu tiên số cặp nhiều nhất rồi tổng khoảng cách XY nhỏ nhất.
+Vì vậy RMSE phải đọc cùng matches/ghosts/misses, không chỉ một giá trị đơn lẻ.
+
+Mỗi record JSONL có đúng các trường:
+`mode`, `frame`, `det_tp`, `det_fp`, `det_fn`, `valid_gt`, `confirmed`, `matches`,
+`sum_sq_err`, `ghosts`, `misses`. Mỗi frame thỏa
+`matches + ghosts == confirmed` và `matches + misses == valid_gt`.
+Tổng đếm, tổng `sum_sq_err`, và trung bình `confirmed` trong log tái tạo được
+metrics; record thiếu, trùng, hoặc không nhất quán là dữ liệu không hợp lệ.
+Compare chứa record của cả `lidar` lẫn `fused`; mỗi log riêng chỉ chứa mode đó.
+
+`--seed` mặc định **0**; RNG camera tạo mới cho mỗi run. Cùng dữ liệu, weights,
+frames và seed cho cùng metrics. Đo camera là tâm hộp ground-truth 2D có nhiễu;
+RMSE fused không được xem như bằng chứng camera detector hoạt động tốt.
+
+Runner ghi metrics và log. Các helper `fusion_lab.viz.display` hỗ trợ hiển thị
+hoặc lưu hình khi được gọi từ script riêng. Export CVAT tùy chọn qua
+`fusion_lab.export_cvat`.
 
 ---
 
@@ -311,10 +334,10 @@ Export CVAT tùy chọn qua `fusion_lab.export_cvat`.
 ```bash
 export DAY23_STUDENT_ROOT="$(pwd)/student"
 pytest student/tests/test_provided_modules.py   # Part A–D — pass ngay
-pytest student/tests/                         # E còn TODO được báo xfail
+pytest student/tests/                         # E–H còn TODO được báo xfail
 ```
 
-`test_kalman.py` báo xfail khi stub ném `NotImplementedError`; lỗi assertion vẫn fail.
+Các test E–H chỉ báo xfail cho `NotImplementedError` khi chạy workspace học viên còn stub; mọi exception khác và lỗi assertion vẫn fail. Chạy workspace đã implement giữ kiểm tra strict.
 Khi implement xong, các test chạy bình thường (XPASS); integration cần hoàn thành E–H và có dữ liệu/weights.
 
 ---

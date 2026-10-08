@@ -2,36 +2,20 @@ __pycache__/
 *.py[cod]
 .pytest_cache/
 .mypy_cache/
-.venv/
-.venv-*/
-.venv-day23/
+.ruff_cache/
+.venv*
 *.egg-info/
 dist/
 build/
 .DS_Store
 
-Theory/*
-!Theory/README.vi.md
-
-data/*
-!data/README.vi.md
-
+# Downloaded data and model weights stay local.
+data/**
+!data/README.md
 *.tfrecord
 *.pth
 *.pickle
-dataset/
-results/
-wandb/
 
 **/config/paths.yaml
 **/artifacts/*
 !**/artifacts/.gitkeep
-
-.remember/
-
-# Student checkout: keep acquisition instructions, exclude downloaded inputs.
-data/**
-!data/README.md
-student/config/paths.yaml
-*.egg-info
-.venv*
