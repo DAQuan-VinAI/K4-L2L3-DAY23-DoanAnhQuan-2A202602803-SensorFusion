@@ -15,6 +15,7 @@
 | [RULES.md](RULES.md) | Quy định: làm cá nhân, dùng AI, sao chép, nộp muộn, bảo mật dữ liệu |
 | [docs/HUONG_DAN_KY_THUAT.md](docs/HUONG_DAN_KY_THUAT.md) | Tra cứu: pipeline, thứ tự predict/update, API, schema metrics, xử lý lỗi cài đặt |
 | [data/README.md](data/README.md) | Lấy dữ liệu Waymo và weights |
+| [NOTICE.md](NOTICE.md) | Giấy phép và ghi nhận mã nguồn bên thứ ba |
 
 ---
 
@@ -172,7 +173,7 @@ checkpoint với message `CPx: <việc vừa làm>`.
 
 ```text
 .
-├── README.md, CHECKPOINTS.md, SUBMISSION.md, RUBRIC.md, RULES.md
+├── README.md, CHECKPOINTS.md, SUBMISSION.md, RUBRIC.md, RULES.md, NOTICE.md
 ├── .env.example                 # biến môi trường (không có key)
 ├── docs/HUONG_DAN_KY_THUAT.md   # pipeline, API, metrics, xử lý sự cố
 ├── data/README.md               # hướng dẫn dữ liệu (dữ liệu thật không commit)
@@ -191,10 +192,9 @@ checkpoint với message `CPx: <việc vừa làm>`.
 ## 8. Tài liệu tham khảo
 
 - Waymo Open Dataset — Perception v1: <https://waymo.com/open/>
-- SFA3D (detector BEV + FPN-ResNet): <https://github.com/maudzung/SFA3D>
 - Thrun, Burgard, Fox — *Probabilistic Robotics*, chương 3 (Kalman, EKF)
 - Bar-Shalom, Li, Kirubarajan — *Estimation with Applications to Tracking and Navigation* (gating, association)
-- Nguồn và giấy phép thành phần bên thứ ba: [NOTICE.md](NOTICE.md)
+- Mã nguồn, starter course và giấy phép: [NOTICE.md](NOTICE.md), [§10 Acknowledgement](#10-acknowledgement)
 
 ## 9. Khi gặp khó
 
@@ -202,3 +202,14 @@ checkpoint với message `CPx: <việc vừa làm>`.
 - Lỗi cài đặt, `fusion_lab` không import được, Docker: §3 của [hướng dẫn kỹ thuật](docs/HUONG_DAN_KY_THUAT.md).
 - Test fail mà không rõ vì sao: chạy riêng một test với `-x -vv`, đọc assertion, đối chiếu gợi ý `# vi: TODO`.
 - Chưa có dữ liệu Waymo đúng giờ: làm CP1–CP4 bằng `pytest` trước (không cần dữ liệu), chạy CP5 khi có dữ liệu.
+
+## 10. Acknowledgement
+
+Lab và pipeline detector LiDAR dựa trên các dự án mã nguồn mở. Chi tiết giấy phép và phần nào được vendored trong repo: [NOTICE.md](NOTICE.md).
+
+| Dự án | Vai trò trong lab |
+|---|---|
+| [Simple Waymo Open Dataset Reader](https://github.com/gdlg/simple-waymo-open-dataset-reader) | Đọc segment Waymo (`.tfrecord`) nhẹ, không TensorFlow/Bazel — vendored trong `platform/third_party/waymo_reader/` |
+| [SFA3D](https://github.com/maudzung/SFA3D) — *Super Fast and Accurate 3D Object Detection based on 3D LiDAR Point Clouds* | FPN-ResNet + BEV detector (weights tải riêng) — vendored trong `platform/third_party/objdet_models/resnet/` |
+| [Complex-YOLOv4-PyTorch](https://github.com/maudzung/Complex-YOLOv4-Pytorch) — *Real-time 3D Object Detection on Point Clouds* | Detector BEV thay thế trong starter Udacity; **lab này không vendored** — chỉ dùng nhánh SFA3D/FPN-ResNet |
+| [SDCND: Sensor Fusion and Tracking](https://github.com/udacity/nd013-c2-fusion-starter) | Starter Udacity Self-Driving Car Engineer Nanodegree (Course 2) — cùng hướng bài (detection + EKF + fusion); **không** phân phối lại mã starter trong repo VinUni |
