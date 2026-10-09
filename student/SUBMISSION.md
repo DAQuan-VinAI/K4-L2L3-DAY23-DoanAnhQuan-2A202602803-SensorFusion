@@ -7,8 +7,8 @@
 - Họ tên: Doan Anh Quan
 - MSSV: 2A202602803
 - Email: doananhquan2607@gmail.com
-- Link repo (fork): https://github.com/DAQuan-VinAI/K4-L3-Day23-DoanAnhQuan-2A202602803
-- Commit hash nộp (`git rev-parse HEAD`): `e31944c3cf0fb7b06f94f1b54dc6504208285487` (commit CP6: đủ code E–H, artifacts và báo cáo). Một commit không thể chứa hash của chính nó, nên commit ghi dòng này nằm ngay sau và chỉ sửa đúng dòng này; hash nộp trên LMS là HEAD của `main`.
+- Link repo (fork): https://github.com/DAQuan-VinAI/K4-L2L3-DAY23-DoanAnhQuan-2A202602803-SensorFusion
+- Commit hash nộp (`git rev-parse HEAD`): `e31944c3cf0fb7b06f94f1b54dc6504208285487` (commit CP6: đủ code E–H, artifacts và báo cáo). Một commit không thể chứa hash của chính nó, nên các commit sau đó chỉ sửa hai dòng "Link repo" và "Commit hash nộp" của mục này (repo được đổi tên theo đúng mẫu sau CP6); hash nộp trên LMS là HEAD của `main`.
 
 ## Tóm tắt kết quả
 
