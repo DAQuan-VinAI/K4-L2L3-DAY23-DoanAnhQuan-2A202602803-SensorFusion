@@ -4,6 +4,9 @@ __pycache__/
 .mypy_cache/
 .ruff_cache/
 .venv*
+.env
+.env.*
+!.env.example
 *.egg-info/
 dist/
 build/
@@ -22,5 +25,3 @@ data/**
 # Graded run outputs must be committed.
 !student/artifacts/metrics*.json
 !student/artifacts/grade_run*.log
-!student/artifacts/*.png
-!student/artifacts/*.jpg
