@@ -1,6 +1,6 @@
 """Extended Kalman filter helpers for 6D constant-velocity motion.
 
-Part E supplies prediction and correction for README.vi.md §2.
+Part E supplies prediction and correction for docs/HUONG_DAN_KY_THUAT.md §2.
 Read the shared time step and process-noise settings with get_tracking_params().
 """
 

@@ -1,7 +1,7 @@
 """Measurement-to-track association via Mahalanobis gating and greedy matching.
 
-Part F supplies the association stage shown in README.vi.md §2.
-Use the workspace kalman module for innovation helpers and tracking parameters
+Part F supplies the association stage shown in docs/HUONG_DAN_KY_THUAT.md §2.
+Load ``kalman`` with ``load_workspace_module`` for innovation helpers and tracking parameters
 for the chi-square gate.
 """
 
@@ -13,7 +13,8 @@ from typing import Sequence
 import numpy as np
 
 # vi: from fusion_lab.workspace_support import get_tracking_params
-# vi: Truyền hoặc dùng module kalman cùng workspace; tránh import từ workspace cũ.
+# vi: from fusion_lab.workspace_loader import load_workspace_module
+# vi: kalman = load_workspace_module("kalman")  # không dùng `import kalman`
 
 
 def mahalanobis_distance(track: Any, meas: Any) -> float:

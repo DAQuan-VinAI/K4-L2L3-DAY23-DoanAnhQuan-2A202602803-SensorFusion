@@ -1,6 +1,6 @@
 """Track initialization, scoring, and deletion helpers.
 
-Part H supplies lidar-driven existence decisions (README.vi.md §2).
+Part H supplies lidar-driven existence decisions (docs/HUONG_DAN_KY_THUAT.md §2).
 Use tracking parameters for the score window, thresholds, and covariance limit.
 """
 

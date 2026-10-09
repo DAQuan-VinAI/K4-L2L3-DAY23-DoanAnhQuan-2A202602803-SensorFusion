@@ -1,6 +1,6 @@
 """Camera field-of-view checks and pinhole measurement modeling.
 
-Part G supplies visibility, projection, and pixel covariance (README.vi.md §2).
+Part G supplies visibility, projection, and pixel covariance (docs/HUONG_DAN_KY_THUAT.md §2).
 The platform differentiates projection using a chain-rule Jacobian.
 """
 
@@ -22,14 +22,14 @@ def is_in_field_of_view(x: Matrix, sensor: Any) -> bool:
     Args:
         x: State vector (6x1) with position in vehicle frame.
         sensor: Lidar or camera adapter with ``veh_to_sens`` and ``fov``
-            (radians); camera also supplies ``depth_epsilon``.
+            (radians).
 
     Returns:
         True if sensor coordinates are finite and the horizontal angle is within
-        ``sensor.fov``. A camera additionally requires depth > ``depth_epsilon``.
+        ``sensor.fov``. A camera additionally requires depth > 1e-6.
     """
     # vi: TODO Part G — p_s = R @ p + t; loại tọa độ không hữu hạn.
-    # vi: Camera cần x_s > sensor.depth_epsilon; FOV từ nội tại và bề rộng ảnh.
+    # vi: Camera cần x_s > 1e-6; FOV từ nội tại và bề rộng ảnh.
     # vi: Với cả lidar/camera: kiểm tra atan2(y_s, x_s) nằm trong sensor.fov.
     raise NotImplementedError("TODO: implement is_in_field_of_view")
 
@@ -46,10 +46,10 @@ def camera_measurement_prediction(x: Matrix, sensor: Any) -> Matrix:
 
     Raises:
         ValueError: With coordinate context if sensor coordinates are nonfinite
-            or depth is at most ``sensor.depth_epsilon``.
+            or depth is at most 1e-6.
     """
     # vi: TODO Part G — tính p_s = R @ p + t; trước phép chia kiểm tra hữu hạn
-    # vi: và x_s > sensor.depth_epsilon, ngược lại raise ValueError có tọa độ.
+    # vi: và x_s > 1e-6, ngược lại raise ValueError có tọa độ.
     # vi: u = c_i - f_i * y_s/x_s; v = c_j - f_j * z_s/x_s.
     raise NotImplementedError("TODO: implement camera_measurement_prediction")
 
