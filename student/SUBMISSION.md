@@ -8,7 +8,7 @@
 - MSSV: 2A202602803
 - Email: doananhquan2607@gmail.com
 - Link repo (fork): https://github.com/DAQuan-VinAI/K4-L3-Day23-DoanAnhQuan-2A202602803
-- Commit hash nộp (`git rev-parse HEAD`): hash của commit CP6 (chứa file này) nộp trên LMS; code và artifacts chấm điểm nằm ở commit CP5 `f6c622f`
+- Commit hash nộp (`git rev-parse HEAD`): `e31944c3cf0fb7b06f94f1b54dc6504208285487` (commit CP6: đủ code E–H, artifacts và báo cáo). Một commit không thể chứa hash của chính nó, nên commit ghi dòng này nằm ngay sau và chỉ sửa đúng dòng này; hash nộp trên LMS là HEAD của `main`.
 
 ## Tóm tắt kết quả
 
