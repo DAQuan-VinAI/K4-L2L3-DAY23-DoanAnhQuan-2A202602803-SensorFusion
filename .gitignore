@@ -19,3 +19,8 @@ data/**
 **/config/paths.yaml
 **/artifacts/*
 !**/artifacts/.gitkeep
+# Graded run outputs must be committed.
+!student/artifacts/metrics*.json
+!student/artifacts/grade_run*.log
+!student/artifacts/*.png
+!student/artifacts/*.jpg

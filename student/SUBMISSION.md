@@ -3,8 +3,10 @@
 ## Thông tin học viên
 
 - Họ tên:
+- MSSV:
 - Email:
-- Ngày nộp:
+- Link repo (fork):
+- Commit hash nộp (`git rev-parse HEAD`):
 
 ## Tóm tắt kết quả
 
@@ -42,16 +44,21 @@ File per-mode `metrics_lidar.json`, `metrics_fused.json`, `grade_run_lidar.log`,
    Giải thích vì sao lidar quyết định score/init/delete còn camera chỉ EKF update.
 6. Nêu điều kiện xác nhận, giữ confirmed sau miss, và điều kiện xóa track.
 
-## AI / coding assistant (nếu có)
+## Khai báo sử dụng AI (bắt buộc)
 
-- Phần nào dùng assistant:
-- Cách bạn đã kiểm tra lại (pytest / run_lab):
+Ghi rõ, kể cả khi không dùng ("Không dùng AI"). Xem [RULES.md](../RULES.md) mục 2.
+
+- Công cụ đã dùng (ChatGPT, Copilot, Claude, …):
+- Dùng cho phần nào (hàm, câu hỏi, debug):
+- Cách bạn đã kiểm tra lại (pytest, chạy Waymo, đối chiếu công thức):
 
 ## Checklist nộp
 
-- [ ] **Part E–H** trong `workspace/` đã implement (TODO `# vi:`)
+- [ ] **Part E–H** trong `workspace/` đã implement; `pytest student/tests -q` không còn `failed`/`xfailed`
 - [ ] Part A–D: không bắt buộc sửa (hoặc ghi chú nếu bạn đã sửa)
-- [ ] `artifacts/grade_run.log`
-- [ ] `artifacts/metrics.json`
-- [ ] File SUBMISSION.md này
-- [ ] Không nộp Waymo tfrecord / weights
+- [ ] Lần chạy chấm điểm: `--fusion compare --seed 0`, `frame_start: 0`, `frame_end: 198`
+- [ ] Đã commit `student/artifacts/metrics*.json` và `student/artifacts/grade_run*.log` (không sửa tay)
+- [ ] Đã điền đủ file này, gồm khai báo AI
+- [ ] Không commit dữ liệu Waymo, weights, `paths.yaml`, API key
+- [ ] `python tools/check_submission.py` báo `KẾT QUẢ: SẴN SÀNG NỘP`
+- [ ] Đã push và nộp link repo + commit hash trên LMS ([NOP_BAI.md](../NOP_BAI.md))

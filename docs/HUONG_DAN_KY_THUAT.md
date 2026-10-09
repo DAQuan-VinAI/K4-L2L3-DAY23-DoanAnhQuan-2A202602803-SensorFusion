@@ -1,4 +1,6 @@
-# Lab Day 23 — Sensor Fusion (repo học viên)
+# Hướng dẫn kỹ thuật — Day 23 Sensor Fusion
+
+> Tài liệu tra cứu chi tiết. Lịch làm bài, cách nộp và điểm: xem [README](../README.md), [CHECKPOINTS](../CHECKPOINTS.md), [NOP_BAI](../NOP_BAI.md), [RUBRIC](../RUBRIC.md).
 
 Pipeline đầy đủ **Part A → I**: LiDAR → BEV → FPN detection → metrics → EKF → association → **camera fusion** → track management → tích hợp Waymo.
 
@@ -227,7 +229,7 @@ Env conda không bị ảnh hưởng vì nằm trong thư mục cài conda. Chuy
 
 ## 4. Dữ liệu & weights
 
-Đọc [hướng dẫn dữ liệu và weights](data/README.md). Sinh viên phải đăng ký Waymo
+Đọc [hướng dẫn dữ liệu và weights](../data/README.md). Sinh viên phải đăng ký Waymo
 và chấp nhận điều khoản trước khi nhận bản sao qua liên kết kiểm soát truy cập
 trong lớp, hoặc tự tải Perception v1.x TFRecords trên trang Waymo.
 
@@ -235,12 +237,12 @@ Segment mặc định:
 
 `training_segment-1005081002024129653_5313_150_5333_150_with_camera_labels.tfrecord`
 
-[Cấu hình mẫu](student/config/paths.example.yaml) trỏ tới `data/Waymo` và
+[Cấu hình mẫu](../student/config/paths.example.yaml) trỏ tới `data/Waymo` và
 `data/weights` qua đường dẫn tương đối từ `student/`. Chỉnh bản local
 `student/config/paths.yaml` nếu lưu dữ liệu ở nơi khác. Lab dùng
 `protobuf>=6.33.5,<7`. **Không** commit `.tfrecord` / `.pth`.
 
-Xem [NOTICE.md](NOTICE.md) về nguồn và giấy phép thành phần bên thứ ba.
+Xem [NOTICE.md](../NOTICE.md) về nguồn và giấy phép thành phần bên thứ ba.
 
 ---
 
@@ -259,7 +261,7 @@ Làm theo **từng `# vi: TODO Part …`** ngay trong:
 - `camera_fusion.py` — FOV, h(x), R (Jacobian **H** do platform)
 - `track_management.py` — khởi tạo track, score, xóa track
 
-Bài nộp gồm **E–H** + log Waymo + [student/SUBMISSION.md](student/SUBMISSION.md).
+Bài nộp gồm **E–H** + log Waymo + [student/SUBMISSION.md](../student/SUBMISSION.md).
 
 ---
 
@@ -346,11 +348,7 @@ Khi chấm, giảng viên chạy **bộ test E–H gốc** (không phải bản 
 
 ## 9. Nộp bài
 
-Zip **cả thư mục `student/`** (không gồm `config/paths.yaml`, Waymo, weights, `.pytest_cache` hoặc `__pycache__`). Bắt buộc:
-
-- `workspace/` Part **E–H** đã implement
-- `SUBMISSION.md` (nhấn fusion compare + câu hỏi E–H)
-- `student/artifacts/grade_run.log`, `student/artifacts/metrics.json`
+Xem [NOP_BAI.md](../NOP_BAI.md): fork repo, commit code + artifacts, nộp link và commit hash trên LMS.
 
 ---
 
@@ -362,8 +360,4 @@ Zip **cả thư mục `student/`** (không gồm `config/paths.yaml`, Waymo, wei
 4. Camera lệch calibration → triệu chứng gì trên innovation/residual?
 5. Vì sao lab **một predict/frame** thay vì predict–update xen kẽ từng sensor? Waymo `Frame` và `Measurement.t` giả định gì (xem §2.4)?
 
----
-
-## AI / coding assistant
-
-Bạn có thể dùng công cụ hỗ trợ code, nhưng phải **giải thích được** phần bạn nộp trong `workspace/` và điền trung thực `SUBMISSION.md`. Chấm điểm dựa log Waymo, test E–H gốc của giảng viên và báo cáo.
+Quy định dùng AI: xem [RULES.md](../RULES.md) mục 2.
