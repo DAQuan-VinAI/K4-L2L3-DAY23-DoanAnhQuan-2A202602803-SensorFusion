@@ -106,8 +106,7 @@ def test_out_of_fov_pair_stays_unassigned(workspace_modules):
     association.associate_and_update(manager, [measurement], filter_obj, sensor)
     filter_obj.update.assert_not_called()
     manager.handle_updated_track.assert_not_called()
-    manager.manage_tracks.assert_called_once_with([track], [measurement],
-                                                  [measurement], sensor)
+    manager.manage_tracks.assert_called_once_with([track], [measurement], sensor)
 
 
 def test_empty_pass_runs_management(workspace_modules):
@@ -115,7 +114,7 @@ def test_empty_pass_runs_management(workspace_modules):
     sensor = _lidar(workspace_modules)
     manager = SimpleNamespace(track_list=[track], manage_tracks=Mock())
     workspace_modules["association"].associate_and_update(manager, [], Mock(), sensor)
-    manager.manage_tracks.assert_called_once_with([track], [], [], sensor)
+    manager.manage_tracks.assert_called_once_with([track], [], sensor)
 
 
 def test_mahalanobis_and_chi2_gate_numeric(workspace_modules):
@@ -210,11 +209,11 @@ def test_camera_pass_never_deletes_or_spawns(workspace_modules):
     track.score = 0
     track.P = np.asmatrix(np.eye(6) * 100)
     manager.track_list = [track]
-    manager.manage_tracks([track], [], [], camera)
+    manager.manage_tracks([track], [], camera)
     assert manager.track_list == [track]
     manager.track_list = []
     meas = Measurement(0, [960, 640], camera, R=np.asmatrix(np.eye(2)))
-    manager.manage_tracks([], [meas], [meas], camera)
+    manager.manage_tracks([], [meas], camera)
     assert manager.track_list == []
 
 
