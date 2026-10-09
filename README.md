@@ -91,7 +91,6 @@ gốc trên `workspace/` của bạn.
 
 | Việc | Ghi chú |
 |---|---|
-| Đăng ký Waymo Open Dataset, chấp nhận điều khoản | Bắt buộc trước khi nhận dữ liệu — xem [data/README.md](data/README.md) |
 | Tải 1 segment Waymo `.tfrecord` + weights `fpn_resnet_18_epoch_300.pth` | Từ [Google Drive Day23-Fusion](https://drive.google.com/drive/folders/1XTXA60c9gV6rkK6fWohMyHw8qpsfYBlE?usp=sharing); segment mặc định ghi trong [data/README.md](data/README.md) |
 | Python 3.12 (conda, uv hoặc pip) hoặc Docker | Mục 5, bước 2 |
 | Đọc §2 của [docs/HUONG_DAN_KY_THUAT.md](docs/HUONG_DAN_KY_THUAT.md) | Sơ đồ pipeline và thứ tự predict → AssocL → AssocC |

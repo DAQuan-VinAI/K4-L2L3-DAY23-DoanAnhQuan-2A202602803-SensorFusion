@@ -42,7 +42,7 @@ Cả người cho chép và người chép đều bị xử lý như nhau.
 
 ## 6. Dữ liệu Waymo và bảo mật
 
-- Dữ liệu Waymo Open Dataset chỉ dùng cho mục đích học tập, theo điều khoản bạn đã chấp nhận khi đăng ký. **Không** chia sẻ lại hoặc commit file `.tfrecord`, ảnh trích từ dataset với số lượng lớn, hoặc link tải riêng.
+- Dữ liệu Waymo Open Dataset chỉ dùng cho mục đích học tập trong lab. **Không** chia sẻ lại hoặc commit file `.tfrecord`, ảnh trích từ dataset với số lượng lớn, hoặc link tải riêng.
 - **Không** commit weights (`.pth`), `student/config/paths.yaml`, `.env`, file nén hay file > 20 MB.
 - **Không** commit API key, token, mật khẩu. Lỡ commit thì **thu hồi key ngay** rồi mới xoá khỏi repo — xoá file không làm key hết hiệu lực.
 - Chạy `python tools/check_submission.py` trước khi nộp để phát hiện các lỗi trên.

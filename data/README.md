@@ -1,17 +1,12 @@
 # Dữ liệu và weights — Day 23
 
-## Đăng ký Waymo trước khi nhận dữ liệu
+## Tải dữ liệu Waymo
 
-Mỗi sinh viên phải đăng ký tại [waymo.com/open](https://waymo.com/open/) và chấp
-nhận [điều khoản Waymo Open Dataset](https://waymo.com/open/terms/) trước khi nhận
-dữ liệu. Các điều khoản chỉ cho phép chia sẻ lại cho người đã đăng ký và chấp
-nhận điều khoản; dữ liệu không được đưa vào repo công khai.
-
-Sau khi đăng ký, tải bản sao 4 segments của khóa học và weights từ Google Drive:
+Giảng viên đã tải sẵn 4 segments của khóa học. Tải từ Google Drive:
 [Day23-Fusion](https://drive.google.com/drive/folders/1XTXA60c9gV6rkK6fWohMyHw8qpsfYBlE?usp=sharing) (thư mục `Waymo/` và `weights/`).
 
-Hoặc tự tải **Perception v1.x TFRecords** từ trang Waymo sau khi đăng ký; lab đọc
-định dạng TFRecord v1.x, không dùng các bảng Parquet của v2.
+Dữ liệu Waymo Open Dataset chỉ dùng cho học tập trong lab; không đưa lên repo công khai
+và không chia sẻ lại ra ngoài lớp.
 
 Danh sách segment của khóa học:
 

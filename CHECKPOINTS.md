@@ -17,7 +17,7 @@ Mọi lệnh chạy từ gốc repo, sau khi đã nạp biến môi trường: `
 **Cần làm**
 1. Fork repo, đặt tên `K4-L2L3-DAY23-<HoVaTen>-<MSSV>-SensorFusion`, clone và thêm remote `upstream` — [README.md](README.md) mục 5, bước 1.
 2. Cài môi trường, tạo `.env` từ `.env.example` và `paths.yaml` — README mục 5, bước 2–3.
-3. Đăng ký Waymo, rồi tải segment mặc định và weights từ [Google Drive Day23-Fusion](https://drive.google.com/drive/folders/1XTXA60c9gV6rkK6fWohMyHw8qpsfYBlE?usp=sharing) theo [data/README.md](data/README.md).
+3. Tải segment mặc định và weights từ [Google Drive Day23-Fusion](https://drive.google.com/drive/folders/1XTXA60c9gV6rkK6fWohMyHw8qpsfYBlE?usp=sharing) theo [data/README.md](data/README.md).
 4. Đọc §2 của [docs/HUONG_DAN_KY_THUAT.md](docs/HUONG_DAN_KY_THUAT.md) và lướt Part A–D trong `student/workspace/`.
 5. Điền phần "Thông tin học viên" trong `student/SUBMISSION.md`.
 
