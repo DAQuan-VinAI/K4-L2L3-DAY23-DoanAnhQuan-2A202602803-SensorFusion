@@ -329,7 +329,7 @@ hoặc lưu hình khi được gọi từ script riêng. Export CVAT tùy chọn
 
 ---
 
-## 8. Tự kiểm tra (không tính rubric)
+## 8. Tự kiểm tra
 
 ```bash
 export DAY23_STUDENT_ROOT="$(pwd)/student"
@@ -339,6 +339,8 @@ pytest student/tests/                         # E–H còn TODO được báo xf
 
 Các test E–H chỉ báo xfail cho `NotImplementedError` khi chạy workspace học viên còn stub; mọi exception khác và lỗi assertion vẫn fail. Chạy workspace đã implement giữ kiểm tra strict.
 Khi implement xong, các test chạy bình thường (XPASS); integration cần hoàn thành E–H và có dữ liệu/weights.
+
+Khi chấm, giảng viên chạy **bộ test E–H gốc** (không phải bản trong bài nộp) trên `workspace/` của bạn; sửa test trong bài nộp không có tác dụng. Mỗi Part E–H trượt test sẽ mất ¼ điểm tracking tự động. Hãy giữ đúng chữ ký hàm trong stub.
 
 ---
 
@@ -364,4 +366,4 @@ Zip **cả thư mục `student/`** (không gồm `config/paths.yaml`, Waymo, wei
 
 ## AI / coding assistant
 
-Bạn có thể dùng công cụ hỗ trợ code, nhưng phải **giải thích được** phần bạn nộp trong `workspace/` và điền trung thực `SUBMISSION.md`. Chấm điểm dựa log Waymo + báo cáo, **không** dựa điểm pytest.
+Bạn có thể dùng công cụ hỗ trợ code, nhưng phải **giải thích được** phần bạn nộp trong `workspace/` và điền trung thực `SUBMISSION.md`. Chấm điểm dựa log Waymo, test E–H gốc của giảng viên và báo cáo.
