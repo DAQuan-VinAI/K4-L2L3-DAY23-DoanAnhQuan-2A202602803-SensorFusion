@@ -18,12 +18,11 @@ Hoặc tự tải **Perception v1.x TFRecords** từ trang Waymo sau khi đăng 
 Danh sách segment của khóa học:
 
 1. `training_segment-1005081002024129653_5313_150_5333_150_with_camera_labels.tfrecord` (mặc định).
-2. **Chờ giảng viên cung cấp tên file segment thứ 2.**
-3. **Chờ giảng viên cung cấp tên file segment thứ 3.**
-4. **Chờ giảng viên cung cấp tên file segment thứ 4.**
+2. `training_segment-10072231702153043603_5725_000_5745_000_with_camera_labels.tfrecord`
+3. `training_segment-10094743350625019937_3420_000_3440_000_with_camera_labels.tfrecord`
+4. `training_segment-10963653239323173269_1924_000_1944_000_with_camera_labels.tfrecord`
 
-Tài liệu nguồn hiện chỉ xác định segment mặc định; ba tên còn lại cần được bổ
-sung trước khi phát hành gói dữ liệu trong lớp. Đặt các file vào `data/Waymo/`.
+Đặt các file vào `data/Waymo/`.
 
 ## Weights SFA3D
 
