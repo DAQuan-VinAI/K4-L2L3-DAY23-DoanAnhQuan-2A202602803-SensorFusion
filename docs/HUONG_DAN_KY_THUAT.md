@@ -1,6 +1,6 @@
 # Hướng dẫn kỹ thuật — Day 23 Sensor Fusion
 
-> Tài liệu tra cứu chi tiết. Lịch làm bài, cách nộp và điểm: xem [README](../README.md), [CHECKPOINTS](../CHECKPOINTS.md), [NOP_BAI](../NOP_BAI.md), [RUBRIC](../RUBRIC.md).
+> Tài liệu tra cứu chi tiết. Lịch làm bài, cách nộp và điểm: xem [README](../README.md), [CHECKPOINTS](../CHECKPOINTS.md), [SUBMISSION](../SUBMISSION.md), [RUBRIC](../RUBRIC.md).
 
 Pipeline đầy đủ **Part A → I**: LiDAR → BEV → FPN detection → metrics → EKF → association → **camera fusion** → track management → tích hợp Waymo.
 
@@ -348,7 +348,7 @@ Khi chấm, giảng viên chạy **bộ test E–H gốc** (không phải bản 
 
 ## 9. Nộp bài
 
-Xem [NOP_BAI.md](../NOP_BAI.md): fork repo, commit code + artifacts, nộp link và commit hash trên LMS.
+Xem [SUBMISSION.md](../SUBMISSION.md): fork repo, commit code + artifacts, nộp link và commit hash trên LMS.
 
 ---
 

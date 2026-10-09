@@ -176,7 +176,7 @@ def main() -> int:
         print(f"KẾT QUẢ: CHƯA SẴN SÀNG — {failed} mục FAIL. Sửa rồi chạy lại.")
         return 1
     print("KẾT QUẢ: SẴN SÀNG NỘP")
-    print("Tiếp theo: git push, rồi nộp link repo + `git rev-parse HEAD` trên LMS (xem NOP_BAI.md).")
+    print("Tiếp theo: git push, rồi nộp link repo + `git rev-parse HEAD` trên LMS (xem SUBMISSION.md ở gốc repo).")
     return 0
 
 

@@ -4,7 +4,7 @@ Vi phạm các quy định dưới đây bị trừ điểm theo [RUBRIC.md](RUB
 
 ## 1. Làm bài
 
-- Bài làm **cá nhân**. Được trao đổi ý tưởng, công thức, cách debug với bạn cùng lớp; **không** chia sẻ hoặc chép code, log, số liệu.
+- Bài làm **cá nhân**; mỗi học viên tự nộp repo của mình, đặt tên theo [SUBMISSION.md](SUBMISSION.md) mục 2. Được trao đổi ý tưởng, công thức, cách debug với bạn cùng lớp; **không** chia sẻ hoặc chép code, log, số liệu.
 - Chỉ viết code trong các hàm Part E–H của `student/workspace/`. **Giữ nguyên tên và chữ ký hàm**: bài được chấm bằng bộ test gốc của giảng viên.
 - Không sửa `platform/` để "làm đẹp" kết quả. Nếu bạn nghĩ platform có lỗi, báo lab coach.
 - Commit theo checkpoint (`CPx: ...`) như [CHECKPOINTS.md](CHECKPOINTS.md).
@@ -29,8 +29,8 @@ Cả người cho chép và người chép đều bị xử lý như nhau.
 
 ## 4. Nộp muộn
 
-Deadline theo thông báo trên LMS. Thời điểm nộp tính theo **commit cuối cùng trên fork** và thời điểm nộp trên LMS (lấy thời điểm muộn hơn).
-
+- **Deadline mặc định: 23:59 ngày học lab, giờ Việt Nam (UTC+7).** Nếu deadline khác, key coach thông báo trong vòng 48 giờ sau buổi lab; khi đó theo thông báo.
+- Thời điểm nộp tính theo **commit cuối cùng trên repo nộp** và thời điểm nộp trên LMS (lấy thời điểm muộn hơn).
 - Nộp muộn: **−10 điểm**. Mức xử lý cho bài muộn nhiều ngày theo thông báo của giảng viên trên LMS.
 - Có lý do chính đáng (ốm, sự cố): báo giảng viên **trước** deadline.
 
@@ -43,7 +43,7 @@ Deadline theo thông báo trên LMS. Thời điểm nộp tính theo **commit cu
 ## 6. Dữ liệu Waymo và bảo mật
 
 - Dữ liệu Waymo Open Dataset chỉ dùng cho mục đích học tập, theo điều khoản bạn đã chấp nhận khi đăng ký. **Không** chia sẻ lại hoặc commit file `.tfrecord`, ảnh trích từ dataset với số lượng lớn, hoặc link tải riêng.
-- **Không** commit weights (`.pth`), `student/config/paths.yaml`, file nén hay file > 20 MB.
+- **Không** commit weights (`.pth`), `student/config/paths.yaml`, `.env`, file nén hay file > 20 MB.
 - **Không** commit API key, token, mật khẩu. Lỡ commit thì **thu hồi key ngay** rồi mới xoá khỏi repo — xoá file không làm key hết hiệu lực.
 - Chạy `python tools/check_submission.py` trước khi nộp để phát hiện các lỗi trên.
 

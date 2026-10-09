@@ -1,4 +1,6 @@
-# Nộp bài — Day 23 Sensor Fusion Lab
+# Báo cáo bài nộp — Day 23 Sensor Fusion Lab
+
+> Điền file này rồi commit. Cách nộp: [hướng dẫn nộp](../SUBMISSION.md).
 
 ## Thông tin học viên
 
@@ -44,6 +46,13 @@ File per-mode `metrics_lidar.json`, `metrics_fused.json`, `grade_run_lidar.log`,
    Giải thích vì sao lidar quyết định score/init/delete còn camera chỉ EKF update.
 6. Nêu điều kiện xác nhận, giữ confirmed sau miss, và điều kiện xóa track.
 
+## Bonus (không bắt buộc)
+
+Liệt kê phần bonus đã làm, file bằng chứng trong `student/bonus/` và kết quả chính
+(xem [RUBRIC.md](../RUBRIC.md) mục 2). Không làm thì ghi "Không".
+
+- 
+
 ## Khai báo sử dụng AI (bắt buộc)
 
 Ghi rõ, kể cả khi không dùng ("Không dùng AI"). Xem [RULES.md](../RULES.md) mục 2.
@@ -61,4 +70,4 @@ Ghi rõ, kể cả khi không dùng ("Không dùng AI"). Xem [RULES.md](../RULES
 - [ ] Đã điền đủ file này, gồm khai báo AI
 - [ ] Không commit dữ liệu Waymo, weights, `paths.yaml`, API key
 - [ ] `python tools/check_submission.py` báo `KẾT QUẢ: SẴN SÀNG NỘP`
-- [ ] Đã push và nộp link repo + commit hash trên LMS ([NOP_BAI.md](../NOP_BAI.md))
+- [ ] Đã push và nộp link repo + commit hash trên LMS ([hướng dẫn nộp](../SUBMISSION.md))

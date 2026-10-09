@@ -8,15 +8,15 @@ chưa qua checkpoint nào thì báo ngay, đừng im lặng làm tiếp.
 > `CP1: EKF predict and update`. Lịch sử commit là bằng chứng bạn tự làm theo tiến
 > độ; bài chỉ có 1–2 commit dồn cuối giờ sẽ bị gọi vấn đáp (xem [RUBRIC.md](RUBRIC.md) mục 4).
 
-Mọi lệnh chạy từ gốc repo, sau khi đã `export DAY23_STUDENT_ROOT="$(pwd)/student"`.
+Mọi lệnh chạy từ gốc repo, sau khi đã nạp biến môi trường: `set -a; source .env; set +a`.
 
 ---
 
 ## CP0 — Chuẩn bị (làm ở nhà, trước buổi học)
 
 **Cần làm**
-1. Fork repo, đặt tên `<HoVaTen>-<MSSV>-Track4-Day23`, clone và thêm remote `upstream` — [README.md](README.md) mục 4, bước 1.
-2. Cài môi trường và cấu hình — README mục 4, bước 2–3.
+1. Fork repo, đặt tên `K4-L2L3-DAY23-<HoVaTen>-<MSSV>-SensorFusion`, clone và thêm remote `upstream` — [README.md](README.md) mục 5, bước 1.
+2. Cài môi trường, tạo `.env` từ `.env.example` và `paths.yaml` — README mục 5, bước 2–3.
 3. Đăng ký Waymo, tải segment mặc định và weights theo [data/README.md](data/README.md).
 4. Đọc §2 của [docs/HUONG_DAN_KY_THUAT.md](docs/HUONG_DAN_KY_THUAT.md) và lướt Part A–D trong `student/workspace/`.
 5. Điền phần "Thông tin học viên" trong `student/SUBMISSION.md`.
@@ -150,7 +150,7 @@ pytest student/tests -q
 **Cần làm**
 1. Điền `student/SUBMISSION.md`: số liệu từ `metrics.json`, 6 câu giải thích E–H, khai báo AI.
 2. Chạy `python tools/check_submission.py` và sửa đến khi báo `KẾT QUẢ: SẴN SÀNG NỘP`.
-3. Commit `CP6: ...`, `git push`, nộp trên LMS theo [NOP_BAI.md](NOP_BAI.md).
+3. Commit `CP6: ...`, `git push`, nộp trên LMS theo [SUBMISSION.md](SUBMISSION.md).
 
 **Sản phẩm** — fork đã push; link repo và commit hash đã nộp trên LMS.
 

@@ -63,8 +63,8 @@ def submission(tmp_path: Path) -> Path:
         (root / path).write_text("def solved():\n    return 1\n")
     _write_artifacts(root / "student" / "artifacts")
     (root / checker.SUBMISSION).write_text(
-        "- Họ tên: Nguyen Van A\n- MSSV: 20240123\n"
-        "- Link repo (fork): https://github.com/a/NguyenVanA-20240123-Track4-Day23\n"
+        "- Họ tên: Nguyen Van A\n- MSSV: 2A20260000\n"
+        "- Link repo (fork): https://github.com/a/K4-L2L3-DAY23-NguyenVanA-2A20260000-SensorFusion\n"
         "- Công cụ đã dùng (ChatGPT, Copilot, Claude, …): Không dùng AI\n"
     )
     _git(root, "init", "-q")

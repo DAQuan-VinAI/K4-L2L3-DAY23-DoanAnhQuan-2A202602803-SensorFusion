@@ -1,16 +1,16 @@
 # Rubric chấm điểm
 
-Bài lab làm **cá nhân**. Điểm của mỗi học viên:
+Bài lab làm **cá nhân**. Điểm của mỗi học viên gồm phần **bắt buộc** và phần **bonus** tách riêng:
 
-- **Phần chính: 100 điểm** — A (15) + B (60) + C (25), mục 1.
-- **Bonus: tối đa +5**, mục 2, cộng ngoài 100 điểm chính.
+- **Phần bắt buộc: 100 điểm** — A (15) + B (60) + C (25), mục 1.
+- **Bonus (không bắt buộc): tối đa +10**, mục 2.
 - **Trừ điểm và mất điểm:** mục 3. **Vấn đáp xác minh:** mục 4.
 
 Part A–D là code có sẵn, **không** chấm phần sửa các file đó.
 
 ---
 
-## 1. Phần chính (100 điểm)
+## 1. Phần bắt buộc (100 điểm)
 
 | Hạng mục | Điểm | Chấm | Bằng chứng |
 |---|---|---|---|
@@ -87,17 +87,21 @@ Chấm trên `student/SUBMISSION.md`:
 
 ---
 
-## 2. Bonus (tối đa +5)
+## 2. Bonus (tối đa +10, không bắt buộc)
 
-Tổng bonus tối đa +5, giảng viên chấm theo chất lượng và bằng chứng. Gợi ý:
+Bonus là điểm cộng cho **bài lab** (không phải điểm phát biểu, giơ tay hay pitching),
+cộng thêm tối đa **10 điểm** vào thang 100. Chỉ chấm khi phần bắt buộc đã nộp đủ.
+Bằng chứng đặt trong thư mục `student/bonus/` và mô tả trong mục "Bonus" của `student/SUBMISSION.md`.
 
-| Nội dung | Bằng chứng |
-|---|---|
-| Export track sang CVAT (`fusion_lab.export_cvat`) và kiểm tra trực quan | File export + ảnh chụp màn hình, mô tả trong `SUBMISSION.md` |
-| Trực quan hoá track/đo trên BEV hoặc ảnh camera | Ảnh nhỏ (PNG/JPG) trong `student/artifacts/`, mô tả trong `SUBMISSION.md` |
-| Phân tích calibration: làm lệch extrinsic camera, đo ảnh hưởng lên innovation/RMSE | Bảng số liệu + nhận xét trong `SUBMISSION.md` |
+| Nội dung | Tối đa | Bằng chứng | Đạt đủ điểm khi |
+|---|---|---|---|
+| Export track sang CVAT (`fusion_lab.export_cvat.export_tracks_json`) và kiểm tra trực quan | +3 | File JSON export + ảnh chụp CVAT trong `student/bonus/` | Import được vào CVAT; chỉ ra ít nhất 1 ghost hoặc 1 lần đổi ID trên ảnh |
+| Trực quan hoá track và đo trên BEV hoặc ảnh camera | +3 | 2–5 ảnh PNG/JPG trong `student/bonus/` | Ảnh có chú thích; chỉ ra được tác dụng của camera update trên ít nhất 1 track |
+| Phân tích calibration: làm lệch extrinsic camera, đo ảnh hưởng lên innovation và RMSE | +4 | Bảng số liệu + nhận xét trong `student/SUBMISSION.md` | Ít nhất 3 mức lệch; nêu được triệu chứng trên innovation và vì sao gating chặn hoặc không chặn |
 
-`fusion-run-lab` luôn ghi vào `student/artifacts/`. Nếu chạy thử nghiệm bonus (ví dụ lệch calibration), lưu số liệu cần dùng rồi **chạy lại lần chấm điểm** (`--fusion compare --seed 0`, code gốc) trước khi commit artifacts.
+`fusion-run-lab` luôn ghi vào `student/artifacts/`. Nếu chạy thử nghiệm bonus (ví dụ lệch
+calibration), lưu số liệu cần dùng sang `student/bonus/` rồi **chạy lại lần chấm điểm**
+(`--fusion compare --seed 0`, code gốc) trước khi commit artifacts.
 
 ---
 
@@ -107,7 +111,7 @@ Tổng bonus tối đa +5, giảng viên chấm theo chất lượng và bằng 
 |---|---|
 | Log thiếu, trùng record, có số không hữu hạn hoặc âm, sai invariant, detection khác nhau giữa hai mode, hoặc tổng không khớp `metrics.json` | **0 điểm tự động** (A và phần tự động của B); phải chạy lại |
 | Không chạy `--fusion compare` | Không đạt hạng mục A; mode không có trong log được 0 điểm tracking |
-| Sai tên file hoặc cấu trúc thư mục khiến không chấm tự động được (`student/SUBMISSION.md`, `student/artifacts/`) | −5 điểm |
+| Sai tên repo (`K4-L2L3-DAY23-<HoVaTen>-<MSSV>-SensorFusion`), hoặc sai tên file/cấu trúc thư mục khiến không chấm tự động được | −5 điểm |
 | Không khai báo sử dụng AI trong `SUBMISSION.md` | −10 điểm |
 | Commit dữ liệu Waymo (`.tfrecord`), weights (`.pth`), `paths.yaml`, file nén hoặc file > 20 MB | −5 điểm, và phải xoá khỏi lịch sử git |
 | Lộ API key hoặc token trong repo | −10 điểm, và phải thu hồi key ngay |

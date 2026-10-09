@@ -5,7 +5,7 @@
 - [README.md](../README.md) — tổng quan, cài đặt, lịch 2 giờ
 - [CHECKPOINTS.md](../CHECKPOINTS.md) — việc cần làm từng checkpoint
 - [docs/HUONG_DAN_KY_THUAT.md](../docs/HUONG_DAN_KY_THUAT.md) — pipeline, API, schema metrics
-- [RUBRIC.md](../RUBRIC.md), [RULES.md](../RULES.md), [NOP_BAI.md](../NOP_BAI.md)
+- [RUBRIC.md](../RUBRIC.md), [RULES.md](../RULES.md), [SUBMISSION.md](../SUBMISSION.md) (hướng dẫn nộp)
 
 | Đường dẫn | Nội dung |
 |---|---|

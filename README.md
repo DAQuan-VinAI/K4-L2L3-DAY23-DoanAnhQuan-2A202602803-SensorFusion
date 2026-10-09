@@ -1,40 +1,75 @@
 # Lab Day 23 — Sensor Fusion: theo dõi xe bằng LiDAR + camera trên Waymo
 
-Bạn hoàn thiện một tracker đa cảm biến chạy trên dữ liệu Waymo thật. Detector LiDAR
-(BEV + FPN-ResNet) đã có sẵn; bạn viết **bộ lọc Kalman mở rộng (EKF)**, **gán đo
-lường bằng Mahalanobis**, **mô hình đo camera** và **vòng đời track**, rồi so sánh
-tracking chỉ dùng LiDAR với tracking có thêm camera.
-
-> **Thời lượng:** 2 giờ trên lớp + phần chuẩn bị ở nhà (CP0). **Làm cá nhân.**
-> **Deadline:** theo thông báo trên LMS.
+> **Bài cá nhân** · **2 giờ trên lớp** + chuẩn bị ở nhà (CP0) ·
+> **Deadline:** 23:59 ngày học lab, giờ Việt Nam (UTC+7), trừ khi key coach thông báo khác ·
+> **Nộp:** repo `K4-L2L3-DAY23-<HoVaTen>-<MSSV>-SensorFusion` + link và commit hash trên LMS ([SUBMISSION.md](SUBMISSION.md))
 
 ## Tài liệu trong repo
 
 | File | Đọc khi nào |
 |---|---|
-| [README.md](README.md) | Tổng quan, chuẩn bị, cách bắt đầu (file này) |
+| [README.md](README.md) | Tổng quan, mục tiêu, chuẩn bị, cách bắt đầu (file này) |
 | [CHECKPOINTS.md](CHECKPOINTS.md) | Trong giờ lab — việc cần làm và cách tự kiểm tra từng checkpoint |
+| [SUBMISSION.md](SUBMISSION.md) | Đặt tên repo, file phải nộp, deadline, cách nộp và tự kiểm tra |
+| [RUBRIC.md](RUBRIC.md) | Tiêu chí và điểm, bằng chứng cần có, điều kiện mất điểm, bonus |
+| [RULES.md](RULES.md) | Quy định: làm cá nhân, dùng AI, sao chép, nộp muộn, bảo mật dữ liệu |
 | [docs/HUONG_DAN_KY_THUAT.md](docs/HUONG_DAN_KY_THUAT.md) | Tra cứu: pipeline, thứ tự predict/update, API, schema metrics, xử lý lỗi cài đặt |
-| [RUBRIC.md](RUBRIC.md) | Cách tính điểm |
-| [RULES.md](RULES.md) | Quy định: làm cá nhân, dùng AI, nộp muộn, dữ liệu Waymo |
-| [NOP_BAI.md](NOP_BAI.md) | Cách nộp bài: fork + LMS |
 | [data/README.md](data/README.md) | Lấy dữ liệu Waymo và weights |
 
 ---
 
-## 1. Mục tiêu học tập
+## 1. Tổng quan
 
-Sau buổi lab, bạn có thể:
+**Bài toán.** Xe tự hành cần biết các xe xung quanh đang ở đâu và đi về hướng nào,
+liên tục qua thời gian. Một detector chỉ cho kết quả **từng frame**, có lúc bỏ sót,
+có lúc báo nhầm. Bộ **tracker** nối các detection thành **track** có danh tính,
+ước lượng cả vị trí lẫn vận tốc, và giảm nhiễu bằng cách kết hợp nhiều cảm biến.
 
-1. Phân biệt **detection** (đo độc lập từng frame) và **tracking** (giữ danh tính qua thời gian).
-2. Viết **EKF 6D** `(px, py, pz, vx, vy, vz)` với mô hình vận tốc không đổi: `F`, `Q`, predict, update.
-3. Gán đo vào track bằng **khoảng cách Mahalanobis + cổng χ²**, rồi gán greedy.
-4. Viết **mô hình đo camera**: kiểm tra FOV, chiếu pinhole `h(x)`, xử lý điểm không hợp lệ.
-5. Quản lý **vòng đời track**: khởi tạo, cộng/trừ score, xác nhận, xoá.
-6. Giải thích **track-then-fuse**: một tracker, predict một lần mỗi frame, update LiDAR rồi update camera.
-7. Đọc RMSE cùng số cặp ghép, ghost và miss — không kết luận chỉ từ một con số.
+**Hôm nay bạn xây gì.** Một tracker đa cảm biến chạy trên dữ liệu Waymo thật:
 
-## 2. Bạn làm gì
+```text
+LiDAR point cloud ─► BEV ─► FPN-ResNet ─► hộp 3D ─┐              (Part A–D: có sẵn)
+                                                  ▼
+      mỗi frame:  EKF predict ─► gán + update LiDAR ─► gán + update camera ─► quản lý track
+                  (Part E)        (Part F)               (Part F + G)           (Part H)
+                                                  ▼
+                      metrics.json + grade_run.log: RMSE, ghost, miss  (Part I: chạy Waymo)
+```
+
+- Detector LiDAR (BEV + FPN-ResNet, weights có sẵn) đã viết xong — bạn **đọc hiểu** Part A–D.
+- Bạn **viết** Part E–H: bộ lọc Kalman mở rộng (EKF), gán đo bằng Mahalanobis,
+  mô hình đo camera, vòng đời track.
+- Cuối buổi, bạn chạy cả pipeline trên một segment Waymo ở hai chế độ — **chỉ LiDAR**
+  và **LiDAR + camera** — rồi giải thích sự khác biệt bằng số liệu.
+
+**Thiết kế fusion: track-then-fuse.** Chỉ có **một** tracker. Mỗi frame, EKF predict
+một lần, update bằng LiDAR, rồi update thêm bằng camera nếu xe nằm trong tầm nhìn
+camera. Camera chỉ tinh chỉnh trạng thái; việc tạo, xác nhận và xoá track chỉ dựa vào LiDAR.
+
+**Giới hạn cần biết.** Camera trong lab **không** chạy detector ảnh: platform lấy tâm
+hộp 2D ground-truth của camera FRONT, thêm nhiễu theo `--seed`, rồi dùng làm đo cho
+EKF. Kết quả fused vì thế không chứng minh chất lượng một camera detector.
+
+## 2. Mục tiêu học tập và cách đo
+
+Sau buổi lab, bạn **làm được** những việc dưới đây. Cột cuối là bằng chứng dùng để đo
+mức đạt; điểm chi tiết ở [RUBRIC.md](RUBRIC.md).
+
+| # | Mục tiêu (bạn có thể…) | Đo bằng | Mức đạt |
+|---|---|---|---|
+| 1 | Cài **EKF 6D** `(px, py, pz, vx, vy, vz)` vận tốc không đổi: `F`, `Q`, predict, update | Test Part E (`test_kalman.py` + test chấm) | Pass 100% test Part E |
+| 2 | Gán đo vào track bằng **Mahalanobis + cổng χ²** và gán greedy | Test Part F | Pass 100% test Part F |
+| 3 | Viết **mô hình đo camera**: kiểm tra FOV, chiếu pinhole `h(x)`, từ chối điểm không hợp lệ | Test Part G | Pass 100% test Part G |
+| 4 | Quản lý **vòng đời track**: khởi tạo, cộng/trừ score, xác nhận, xoá — chỉ theo LiDAR | Test Part H + vấn đáp | Pass 100% test Part H; giải thích được vì sao camera không đổi score |
+| 5 | Chạy tracker trên Waymo và đạt chất lượng tracking chuẩn | `metrics.json` | RMSE LiDAR và fused ≤ 0.45 m; `precision_track` ≥ 0.75; `coverage` ≥ 0.70 |
+| 6 | Chứng minh camera **không làm tracking xấu đi** | `metrics.json` | `rmse_fused − rmse_lidar` ≤ 0.05 m |
+| 7 | Phân biệt **detection** và **tracking**; giải thích **track-then-fuse** trên log | Câu 3, 5 trong `student/SUBMISSION.md` | Trả lời đúng, dẫn tới log hoặc code |
+| 8 | Đọc RMSE **cùng** số cặp ghép, ghost, miss — không kết luận từ một con số | Phần tóm tắt kết quả trong `student/SUBMISSION.md` | Giải thích khác biệt hai mode bằng ít nhất RMSE + matches + ghost/miss, số khớp `metrics.json` |
+
+`precision_track = matches / (matches + ghost_track_frames)`, `coverage = matches / det_tp`
+— xem [RUBRIC.md](RUBRIC.md) mục 1.2.
+
+## 3. Bạn làm gì
 
 | Part | File trong `student/workspace/` | Việc | Bạn viết? |
 |---|---|---|---|
@@ -52,32 +87,29 @@ Mỗi hàm cần viết có `raise NotImplementedError("TODO: ...")` và gợi �
 ngay trong file. **Giữ nguyên tên và chữ ký hàm**: khi chấm, giảng viên chạy bộ test
 gốc trên `workspace/` của bạn.
 
-Camera trong lab **không** chạy detector ảnh: platform lấy tâm hộp 2D ground-truth
-của camera FRONT, thêm nhiễu theo `--seed`, rồi dùng làm đo cho EKF. Kết quả fused
-vì thế không chứng minh chất lượng một camera detector.
-
-## 3. Chuẩn bị trước buổi học (CP0 — làm ở nhà)
+## 4. Chuẩn bị trước buổi học (CP0 — làm ở nhà)
 
 | Việc | Ghi chú |
 |---|---|
 | Đăng ký Waymo Open Dataset, chấp nhận điều khoản | Bắt buộc trước khi nhận dữ liệu — xem [data/README.md](data/README.md) |
 | Tải 1 segment Waymo `.tfrecord` + weights `fpn_resnet_18_epoch_300.pth` | Segment mặc định ghi trong [data/README.md](data/README.md) |
-| Python 3.12 (conda, uv hoặc pip) hoặc Docker | Mục 4, bước 2 |
+| Python 3.12 (conda, uv hoặc pip) hoặc Docker | Mục 5, bước 2 |
 | Đọc §2 của [docs/HUONG_DAN_KY_THUAT.md](docs/HUONG_DAN_KY_THUAT.md) | Sơ đồ pipeline và thứ tự predict → AssocL → AssocC |
 | Đọc lướt Part A–D trong `student/workspace/` | Biết detector trả gì cho tracker |
 
 Không tải dữ liệu qua mạng lớp trong giờ lab.
 
-## 4. Bắt đầu
+## 5. Bắt đầu
 
 Mọi lệnh chạy từ **gốc repo**.
 
-**Bước 1 — Fork và clone.** Fork repo này về tài khoản GitHub của bạn, đặt tên
-`<HoVaTen>-<MSSV>-Track4-Day23` (ví dụ `NguyenVanA-20240123-Track4-Day23`), rồi:
+**Bước 1 — Fork và clone.** Bấm **Fork**, ở ô *Repository name* đặt tên
+`K4-L2L3-DAY23-<HoVaTen>-<MSSV>-SensorFusion` (ví dụ
+`K4-L2L3-DAY23-NguyenVanA-2A20260000-SensorFusion`; quy tắc ở [SUBMISSION.md](SUBMISSION.md) mục 2), rồi:
 
 ```bash
-git clone https://github.com/<tai-khoan>/<HoVaTen>-<MSSV>-Track4-Day23.git
-cd <HoVaTen>-<MSSV>-Track4-Day23
+git clone https://github.com/<tai-khoan>/K4-L2L3-DAY23-<HoVaTen>-<MSSV>-SensorFusion.git
+cd K4-L2L3-DAY23-<HoVaTen>-<MSSV>-SensorFusion
 git remote add upstream https://github.com/VinUni-AI20k/K4-Track4-Day23-Sensor-Fusion-Student.git
 ```
 
@@ -99,16 +131,17 @@ Trên macOS, nếu repo nằm trong `~/Documents` hoặc `~/Desktop` mà vẫn b
 `No module named 'fusion_lab'`, đặt venv ở ngoài các thư mục đó — xem §3 của
 [hướng dẫn kỹ thuật](docs/HUONG_DAN_KY_THUAT.md). Docker: cũng ở §3.
 
-**Bước 3 — Biến môi trường và cấu hình:**
+**Bước 3 — Biến môi trường và cấu hình.** Lab **không cần API key**. Các biến môi
+trường được liệt kê, có giải thích, trong [`.env.example`](.env.example):
 
 ```bash
-export DAY23_STUDENT_ROOT="$(pwd)/student"
-export FUSION_LAB_PLATFORM="$(pwd)/platform"
+cp .env.example .env
+set -a; source .env; set +a      # chạy lại mỗi khi mở terminal mới
 cp student/config/paths.example.yaml student/config/paths.yaml
 ```
 
 Đặt dữ liệu vào `data/Waymo/` và weights vào `data/weights/`, hoặc sửa đường dẫn
-trong `student/config/paths.yaml`. File này không được commit.
+trong `student/config/paths.yaml`. `.env` và `paths.yaml` không được commit.
 
 **Bước 4 — Kiểm tra:**
 
@@ -121,7 +154,7 @@ Kết quả đúng khi chưa làm bài: không có dòng `failed`; các test E�
 vì hàm còn `NotImplementedError`. Khi bạn implement xong một Part, test của Part đó
 phải chuyển sang `passed`.
 
-## 5. Lịch 2 giờ
+## 6. Lịch 2 giờ
 
 | Thời gian | Checkpoint | Nội dung | Sản phẩm |
 |---|---|---|---|
@@ -136,11 +169,12 @@ phải chuyển sang `passed`.
 Chi tiết từng checkpoint: [CHECKPOINTS.md](CHECKPOINTS.md). Commit sau mỗi
 checkpoint với message `CPx: <việc vừa làm>`.
 
-## 6. Cấu trúc repo
+## 7. Cấu trúc repo
 
 ```text
 .
-├── README.md, CHECKPOINTS.md, RUBRIC.md, RULES.md, NOP_BAI.md
+├── README.md, CHECKPOINTS.md, SUBMISSION.md, RUBRIC.md, RULES.md
+├── .env.example                 # biến môi trường (không có key)
 ├── docs/HUONG_DAN_KY_THUAT.md   # pipeline, API, metrics, xử lý sự cố
 ├── data/README.md               # hướng dẫn dữ liệu (dữ liệu thật không commit)
 ├── environment.yml, docker/     # môi trường
@@ -151,10 +185,11 @@ checkpoint với message `CPx: <việc vừa làm>`.
     ├── tests/                   # bộ tự kiểm tra (gồm test E–H dùng khi chấm)
     ├── config/                  # paths.example.yaml → paths.yaml (không commit)
     ├── artifacts/               # metrics.json, grade_run.log (phải commit)
+    ├── bonus/                   # bằng chứng bonus (không bắt buộc)
     └── SUBMISSION.md            # báo cáo nộp bài
 ```
 
-## 7. Tài liệu tham khảo
+## 8. Tài liệu tham khảo
 
 - Waymo Open Dataset — Perception v1: <https://waymo.com/open/>
 - SFA3D (detector BEV + FPN-ResNet): <https://github.com/maudzung/SFA3D>
@@ -162,7 +197,7 @@ checkpoint với message `CPx: <việc vừa làm>`.
 - Bar-Shalom, Li, Kirubarajan — *Estimation with Applications to Tracking and Navigation* (gating, association)
 - Nguồn và giấy phép thành phần bên thứ ba: [NOTICE.md](NOTICE.md)
 
-## 8. Khi gặp khó
+## 9. Khi gặp khó
 
 - Kẹt cùng một lỗi quá **10 phút** thì hỏi lab coach.
 - Lỗi cài đặt, `fusion_lab` không import được, Docker: §3 của [hướng dẫn kỹ thuật](docs/HUONG_DAN_KY_THUAT.md).
