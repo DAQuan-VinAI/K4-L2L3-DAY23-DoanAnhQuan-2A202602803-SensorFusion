@@ -7,10 +7,8 @@ nhận [điều khoản Waymo Open Dataset](https://waymo.com/open/terms/) trư�
 dữ liệu. Các điều khoản chỉ cho phép chia sẻ lại cho người đã đăng ký và chấp
 nhận điều khoản; dữ liệu không được đưa vào repo công khai.
 
-Giảng viên chia sẻ bản sao 4 segments của khóa học **chỉ qua liên kết kiểm soát
-truy cập cung cấp trong lớp**, sau khi kiểm tra sinh viên đã đăng ký:
-
-`<LINK DO GIẢNG VIÊN CUNG CẤP SAU KHI SV ĐÃ ĐĂNG KÝ WAYMO>`
+Sau khi đăng ký, tải bản sao 4 segments của khóa học và weights từ Google Drive:
+[Day23-Fusion](https://drive.google.com/drive/folders/1XTXA60c9gV6rkK6fWohMyHw8qpsfYBlE?usp=sharing) (thư mục `Waymo/` và `weights/`).
 
 Hoặc tự tải **Perception v1.x TFRecords** từ trang Waymo sau khi đăng ký; lab đọc
 định dạng TFRecord v1.x, không dùng các bảng Parquet của v2.
@@ -26,7 +24,8 @@ Danh sách segment của khóa học:
 
 ## Weights SFA3D
 
-Tải `fpn_resnet_18_epoch_300.pth` từ
+Lấy `fpn_resnet_18_epoch_300.pth` trong thư mục `weights/` của
+[Google Drive Day23-Fusion](https://drive.google.com/drive/folders/1XTXA60c9gV6rkK6fWohMyHw8qpsfYBlE?usp=sharing), hoặc tải từ
 [checkpoints/fpn_resnet_18 của SFA3D](https://github.com/maudzung/SFA3D/tree/master/checkpoints/fpn_resnet_18)
 (MIT; tác giả Nguyen Mau Dung). Đặt đúng đường dẫn:
 

@@ -230,8 +230,8 @@ Env conda không bị ảnh hưởng vì nằm trong thư mục cài conda. Chuy
 ## 4. Dữ liệu & weights
 
 Đọc [hướng dẫn dữ liệu và weights](../data/README.md). Sinh viên phải đăng ký Waymo
-và chấp nhận điều khoản trước khi nhận bản sao qua liên kết kiểm soát truy cập
-trong lớp, hoặc tự tải Perception v1.x TFRecords trên trang Waymo.
+và chấp nhận điều khoản trước khi tải bản sao từ
+[Google Drive Day23-Fusion](https://drive.google.com/drive/folders/1XTXA60c9gV6rkK6fWohMyHw8qpsfYBlE?usp=sharing), hoặc tự tải Perception v1.x TFRecords trên trang Waymo.
 
 Segment mặc định:
 
